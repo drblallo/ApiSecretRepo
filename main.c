@@ -21,7 +21,7 @@ int getCommand(char* buffer, FILE* f)
 		return 0;
 	}
 	
-	while (fgetc(f) != '/')
+	while (fgetc(f) == ' ')
 		;
 
 	return 1;
@@ -47,6 +47,20 @@ void mainLoop(FILE* f, Node* root, int quietMode)
 			if (strcmp(commandBuffer, (char*)"create_dir") == 0)
 				FSCreateDir(f, root, buffer, quietMode);
 
+			if (strcmp(commandBuffer, (char*)"read") == 0)
+				FSRead(f, root, buffer, quietMode);
+
+			if (strcmp(commandBuffer, (char*)"write") == 0)
+				FSWrite(f, root, buffer, quietMode);
+
+			if (strcmp(commandBuffer, (char*)"delete") == 0)
+				FSDelete(f, root, buffer, quietMode);
+
+			if (strcmp(commandBuffer, (char*)"delete_r") == 0)
+				FSDeleteRecursive(f, root, buffer, quietMode);
+
+			if (strcmp(commandBuffer, (char*)"find") == 0)
+				FSFind(f, root, buffer, quietMode);
 		}
 		if (!endLineReached)
 			while (fgetc(f) != '\n')
@@ -59,7 +73,7 @@ int main(int argc, char **argv)
 {
 	int quietMode = 1;
 	FILE* f = fopen(argv[1], "r");
-	Node* root = createNode((char*)"root");
+	Node* root = createNode((char*)"/");
 
 	if (argc > 2 && argv[2][0] == 'a')
 		quietMode = 0;

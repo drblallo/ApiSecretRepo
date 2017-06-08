@@ -54,6 +54,7 @@ struct nd
 	FileHMap fileChildren;
 	unsigned childCount;
 	unsigned depth;
+	struct nd *parent;
 };
 
 File* createFile(char* name); //DONE
@@ -86,6 +87,7 @@ void removeNodeNodeChild(Node* node, Node* child); //DONE
 void recursiveRemoveNode(Node* node, Node* parent); //DONE
 void removeNodeFileChild(Node* node, File* child); //DONE
 void deleteNode(Node* node); //DONE
+void findInNodeAndPrint(Node* n, char* name); //DONE
 
 void fileHMapAdd(File *file, FileHMap *map); //DONE
 File* fileHMapFind(char *string, FileHMap *map); //DONE
@@ -102,3 +104,8 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, int quietMode); //DON
 int FSCreateFile(FILE* f, Node *root, char* buffer, int quietMode); //DONE
 int FSCreateDir(FILE* f, Node *root, char* buffer, int quietMode); //DONE
 void FSPrintTree(Node* root); //DONE
+void FSRead(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+void FSWrite(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+void FSDelete(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+void FSDeleteRecursive(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+void FSFind(FILE* f, Node *root, char* buffer, int quietMode); //DONE

@@ -1,6 +1,10 @@
-create /testFile
+create /testFile 
 create_dir /dir/
-create_dir /dir/dir/
-create /dir/dir/file
+create_dir /dir/dira/
+create /dir/dira/filead
 create /asd/t
 creat_dir /asd/asd/
+write /testFile "adsdadsadsadsadsadds"
+write /testFile "adsdadsadsadsadsadds"
+read /testFile
+find testFile
