@@ -1,0 +1,6 @@
+create /testFile
+create_dir /dir/
+create_dir /dir/dir/
+create /dir/dir/file
+create /asd/t
+creat_dir /asd/asd/

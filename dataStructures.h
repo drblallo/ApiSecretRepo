@@ -1,7 +1,13 @@
 #pragma once
 #define HMAP_SIZE 32
 #define FILE_DATA_SIZE 1024
+#define MAX_TREE_DEPTH 255
+#define MAX_TREE_CHILD_COUNT 1023
+#define MAX_BUFFER_SIZE 257
+#define MAX_COMMAND_SIZE 15
+#include <stdio.h> 
 
+int endLineReached;
 typedef struct nd Node;
 
 typedef struct ndlst
@@ -56,8 +62,6 @@ void writeFileChar(File* file, char character); //DONE
 void printeFile(File* file); //DONE
 void destroyFile(File* file); //DONE
 
-File* createFileFromPath(Node *currentNode, char *path);
-
 FileData* createFileData(); //DONE
 void writeFileData(FileData *data, char* dataToWrite); //DONE
 void printFileData(FileData *data); //DONE
@@ -91,4 +95,10 @@ void nodeHMapAdd(Node *node, NodeHMap *map); //DONE
 Node* nodeHMapFind(char *string, NodeHMap *map); //DONE
 int nodeHMapRemove(Node *node, NodeHMap *map); //DONE
 
- 
+int getNextString(char* buffer, FILE* f); //DONE
+Node* locateInNode(Node* source, char* name); //DONE
+Node* locateRecursive(Node* source, FILE* f, char* buffer, int quietMode); //DONE
+
+int FSCreateFile(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+int FSCreateDir(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+void FSPrintTree(Node* root); //DONE
