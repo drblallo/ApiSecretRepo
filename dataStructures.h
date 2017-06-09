@@ -15,10 +15,25 @@
 #endif
 
 #ifndef QUIET 
+#define WRITE_L(text) printf(text)
+#else
+#define WRITE(text) do {} while(0)
+#endif
+
+#ifndef QUIET 
 #define WRITE_S(text) printf("%s\n", text) 
 #else
 #define WRITE_S(text) do {} while(0)
 #endif
+
+typedef enum 
+{
+	DIR_EXIST, 
+	FILE_EXIST, 
+	DIR_PARENT_EXIST, 
+	FILE_PARENT_EXIST, 
+	BROKEN_PATH
+} locateResult;
 
 int endLineReached;
 typedef struct nd Node;
@@ -112,7 +127,7 @@ int nodeHMapRemove(Node *node, NodeHMap *map); //DONE
 
 int getNextString(char* buffer, FILE* f); //DONE
 Node* locateInNode(Node* source, char* name); //DONE
-Node* locateRecursive(Node* source, FILE* f, char* buffer); //DONE
+Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out); //DONE
 
 int FSCreateFile(FILE* f, Node *root, char* buffer); //DONE
 int FSCreateDir(FILE* f, Node *root, char* buffer); //DONE

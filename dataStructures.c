@@ -452,31 +452,53 @@ void printeFile(File* file)
 //returns the word in the buffer,
 //a word is delimitated by \n, \0, /, and spaces
 //if it ends with a /, the slash is carried over in to the word
+//return is equal to zero if the string point to a dir
+//1 if it's a file
+//-1 if something went wrong
 int getNextString(char* buffer, FILE* f)
 {
-	int a = 0;
+	int index = 0;
 	char c = '0';
+	int toReturn = 1;
 
 	while ((c = fgetc(f)) != '\n' && c != '/' && c != '\0' && c != ' ')
 	{
-		buffer[a] = c;
-		a++;
+		buffer[index] = c;
+		index++;
 
-		if (a >= MAX_BUFFER_SIZE - 2)
-			return 0;
-
-		
+		if (index >= MAX_BUFFER_SIZE - 2)
+		{
+			WRITE("NEXT_STRING: buffer overflow, discarded");
+			buffer[0] = '\0';
+			return -1;
+		}
 	}
+
+	if (index == 0)
+	{
+		WRITE("NEXT_STRING: next string has lenght 0, discarded");
+		buffer[0] = '\0';
+		return -1;
+	}
+
 	if (c == '/')
 	{
-		buffer[a] = c;
-		a++;
+		WRITE_L("NEXT_STRING: found a dir: ");
+		buffer[index] = c;
+		index++;
+		toReturn = 0;
 	}
+	else
+	{
+		WRITE_L("NEXT_STRING: found a file: ");
+	}
+
 	if (c == '\n')
 		endLineReached = 1;
 
-	buffer[a] = '\0';
-	return 1;
+	buffer[index] = '\0';
+	WRITE_S(buffer);
+	return toReturn;
 }
 
 //retuns the children node with the name indicated inside a particular node, if 
@@ -489,19 +511,46 @@ Node* locateInNode(Node* source, char* name)
 	return nodeHMapFind(name, &source->nodeChildren);
 }
 
-Node* locateRecursive(Node* source, FILE* f, char* buffer)
+//return the the parernt dir if a path to a file is in the buffer
+//out is equal to 1 if the buffer contains a name of a file that is inside the node
+//
+//out is equal to 0 if the path provided pointed to a existing dir
+//out is equal to 2 if the path provided points to the parent of the non existing last dir
+//whose name is left in the buffer 
+//out is equal to -1 if the path was broken
+//out is equal to 3 if the file is not inside the node
+Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 {
 	Node *m = source;
 	Node *supp;
 	char c;
+	int result = 0;
 	
 	do 
 	{
-		if (!getNextString(buffer, f))
+		if ((result = getNextString(buffer, f)) == -1)
+		{
+			WRITE("LOCATE: path somehow broke, aborting");
+			*out = BROKEN_PATH;
 			return NULL;
+		}
 
-		if (strlen(buffer) != 0 && buffer[strlen(buffer)-1] != '/')
+		if (result == 1)
+		{
+			if (fileHMapFind(buffer, &m->fileChildren))
+			{
+				WRITE_L("LOCATE: found parent dir of existing file: ");
+				WRITE_S(m->name);
+				*out = FILE_EXIST;
+			}
+			else
+			{
+				WRITE_L("LOCATE: found parent dir of non existing file: ");
+				WRITE_S(m->name);
+				*out = FILE_PARENT_EXIST;
+			}
 			return m;
+		}
 
 		supp = locateInNode(m, buffer);
 
@@ -512,66 +561,73 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer)
 
 			if (((c = fgetc(f)) != '\n') && c != ' ')
 			{
+				WRITE("LOCATE: broken path is deeper than one, aborting");
 				fseek(f, -1, SEEK_CUR);
+				*out = BROKEN_PATH;
 				return NULL;
 			}
 			else
 			{
+				WRITE_L("LOCATE: found parent dir of last inexistend dir: ");
+				WRITE_S(m->name);
 				fseek(f, -1, SEEK_CUR);
+				*out = DIR_PARENT_EXIST;
 				return m;
 			}
 		}
 
 	}while (supp != NULL && !endLineReached);
 
+	WRITE_L("LOCATE: found a dir all the way down: ");
+	WRITE_S(m->name);
+	*out = DIR_EXIST;
 	return m;
 }
 
 int FSCreateFile(FILE* f, Node *root, char* buffer)
 {
 
-	Node* n = locateRecursive(root, f, buffer);
+	locateResult out;
+	Node* n = locateRecursive(root, f, buffer, &out);
 	File* file = NULL;
 
-	if (strlen(buffer) == 0)
-		return 0;
-	if (buffer[strlen(buffer)-1] == '/')
-		return 0;
-
-	if (n)
+	if (out != FILE_PARENT_EXIST)
 	{
-
-		if (fileHMapFind(buffer, &n->fileChildren))
-			return 0;
-
-		file = createFile(buffer);
-
-		addNodeFileChild(n, file);
-
-		return 1;
+		WRITE("->CREATE: path does not point to a dir with a empty resource, aborting");
+		return 0;
 	}
-	return 0;	
+	if (strlen(buffer) == 0)
+	{
+		WRITE("->CREATE: trying to create a 0 lenght file name, aborting");
+		return 0;
+	}
+
+	WRITE("->CREATE: done");
+	file = createFile(buffer);
+	addNodeFileChild(n, file);
+
+	return 1;
 }
 
 int FSCreateDir(FILE* f, Node* root, char* buffer)
 {
 
-	Node* n = locateRecursive(root, f, buffer);
+	locateResult out;
+	Node* n = locateRecursive(root, f, buffer, &out);
 
-	if (strlen(buffer) == 0)
-		return 0;
-	if (buffer[strlen(buffer)-1] != '/')
-		return 0;
-
-	if (n)
+	if (out != DIR_PARENT_EXIST)
 	{
-		if (nodeHMapFind(buffer, &n->nodeChildren))
-			return 0;
-
-		addNodeNodeChild(n, createNode(buffer));
-		return 1;
+		WRITE("->CREATE_DIR: path does not point to a dir with a empty resource, aborting");
+		return 0;
 	}
-	return 0;
+	if (strlen(buffer) == 0)
+	{
+		WRITE("->CREATE_DIR: trying to create a 0 lenght file name, aborting");
+		return 0;
+	}
+	WRITE("->CREATE_DIR: done");
+	addNodeNodeChild(n, createNode(buffer));
+	return 1;
 }
 
 void FSPrintTree(Node* root)
@@ -608,7 +664,8 @@ void FSPrintTree(Node* root)
 
 void FSRead(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer);
+	locateResult out;
+	Node* n = locateRecursive(root, f, buffer, &out);
 	File* file;
 	if (n)
 	{
@@ -623,7 +680,8 @@ void FSRead(FILE* f, Node *root, char* buffer)
 
 void FSWrite(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer);
+	locateResult out;
+	Node* n = locateRecursive(root, f, buffer, &out);
 	File* file = NULL;
 	char c = 0;
 	if (n)
@@ -645,7 +703,8 @@ void FSWrite(FILE* f, Node *root, char* buffer)
 
 void FSDelete(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer);
+	locateResult out;
+	Node* n = locateRecursive(root, f, buffer, &out);
 	File* file;
 	if (n)
 	{
@@ -666,7 +725,8 @@ void FSDelete(FILE* f, Node *root, char* buffer)
 
 void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer);
+	locateResult out;
+	Node* n = locateRecursive(root, f, buffer, &out);
 	File* file;
 	if (n)
 	{
