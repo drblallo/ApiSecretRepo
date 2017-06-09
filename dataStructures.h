@@ -1,11 +1,24 @@
 #pragma once
 #define HMAP_SIZE 32
-#define FILE_DATA_SIZE 1024
+#define FILE_DATA_SIZE 256
 #define MAX_TREE_DEPTH 255
 #define MAX_TREE_CHILD_COUNT 1023
 #define MAX_BUFFER_SIZE 257
 #define MAX_COMMAND_SIZE 15
 #include <stdio.h> 
+//#define QUIET
+
+#ifndef QUIET 
+#define WRITE(text) printf(text); putchar('\n')
+#else
+#define WRITE(text) do {} while(0)
+#endif
+
+#ifndef QUIET 
+#define WRITE_S(text) printf("%s\n", text) 
+#else
+#define WRITE_S(text) do {} while(0)
+#endif
 
 int endLineReached;
 typedef struct nd Node;
@@ -83,7 +96,7 @@ void recursiveDeleteNodeList(NodeList* node); //DONE
 Node* createNode(char* name); //DONE
 int addNodeNodeChild(Node* node, Node* child); //DONE
 int addNodeFileChild(Node* node, File* child); //DONE
-void removeNodeNodeChild(Node* node, Node* child); //DONE
+void removeNodeNodeChild(Node* child); //DONE
 void recursiveRemoveNode(Node* node, Node* parent); //DONE
 void removeNodeFileChild(Node* node, File* child); //DONE
 void deleteNode(Node* node); //DONE
@@ -99,13 +112,14 @@ int nodeHMapRemove(Node *node, NodeHMap *map); //DONE
 
 int getNextString(char* buffer, FILE* f); //DONE
 Node* locateInNode(Node* source, char* name); //DONE
-Node* locateRecursive(Node* source, FILE* f, char* buffer, int quietMode); //DONE
+Node* locateRecursive(Node* source, FILE* f, char* buffer); //DONE
 
-int FSCreateFile(FILE* f, Node *root, char* buffer, int quietMode); //DONE
-int FSCreateDir(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+int FSCreateFile(FILE* f, Node *root, char* buffer); //DONE
+int FSCreateDir(FILE* f, Node *root, char* buffer); //DONE
 void FSPrintTree(Node* root); //DONE
-void FSRead(FILE* f, Node *root, char* buffer, int quietMode); //DONE
-void FSWrite(FILE* f, Node *root, char* buffer, int quietMode); //DONE
-void FSDelete(FILE* f, Node *root, char* buffer, int quietMode); //DONE
-void FSDeleteRecursive(FILE* f, Node *root, char* buffer, int quietMode); //DONE
-void FSFind(FILE* f, Node *root, char* buffer, int quietMode); //DONE
+void FSRead(FILE* f, Node *root, char* buffer); //DONE
+void FSWrite(FILE* f, Node *root, char* buffer); //DONE
+void FSDelete(FILE* f, Node *root, char* buffer); //DONE
+void FSDeleteRecursive(FILE* f, Node *root, char* buffer); //DONE
+void FSDeleteRoot(Node *root); //DONE
+void FSFind(FILE* f, Node *root, char* buffer); //DONE

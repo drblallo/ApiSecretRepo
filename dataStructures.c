@@ -5,34 +5,50 @@
 
 int endLineReached = 0;
 
+//allocate a file with the privided name
+//if the name has lenght 0, it returns NULL
+//file data is set to \0
 File* createFile(char* nane)
 {
 	int l = strlen(nane);
+	if (l == 0)
+		return NULL;
 	File *f = (File*)malloc(sizeof(File));
 	f->name = (char*)malloc(sizeof(char) * (l+1));
 	strcpy(f->name, nane);	
+	f->data.next = NULL;
+	f->data.count = 0;
+	f->data.data[0] = '\0';
 	return f;
 }
 
+//deallocate all data within the file
+//deallocate the name
+//deallocate the file
 void destroyFile(File* file)
 {
-	if (file != NULL)
+	if (file)
 	{
+		if (file->data.next)
+			destoyFileData(file->data.next);
 		free(file->name);
 		free(file);
-		destoyFileData(file->data.next);
 	}
 }
 
+//create a file data
+//the base lenght is set to 0
+//next is set to NULL
 FileData* createFileData()
 {
 	FileData* d = (FileData*)malloc(sizeof(FileData));
 	d->next = NULL;
 	d->data[0] = '\0';
-	d->count = 1;
+	d->count = 0;
 	return d;
 }
 
+//deallocate all the data in the list
 void destoyFileData(FileData *data)
 {
 	if (data)
@@ -42,28 +58,44 @@ void destoyFileData(FileData *data)
 	}
 }
 
+//copies the string inside the provided file data
+//if it overflows it automatically creates another one and starts writing in the next
 void writeFileData(FileData *data, char* dataToWrite)
 {
 	unsigned s = 0;
-	while (dataToWrite[s] != '\0')
+	if (!data)
+		return;
+	if (data->count >= FILE_DATA_SIZE) //if it's full write in the next one
 	{
-		if (data->count >= FILE_DATA_SIZE)
+		if (!data->next)
+			data->next = createFileData();
+		writeFileData(data->next, dataToWrite);
+		return;
+	}
+
+	while (dataToWrite[s] != '\0') //while it's not the end of the string
+	{
+		
+		if (data->count >= FILE_DATA_SIZE) //if it's full write in the next one
 		{
 			if (!data->next)
-			{
 				data->next = createFileData();
-				writeFileData(data->next, &dataToWrite[s]);
-				break;
-			}	
-			writeFileData(data->next, &dataToWrite[s]);
-			break;
-		}
+			writeFileData(data->next, dataToWrite + s);
+			return;
+		}	
+
 		data->data[data->count] = dataToWrite[s];
 		s++;
 		data->count++;
-	}
+	}	
+
+	if (data->count >= FILE_DATA_SIZE) //if it's full, create a new slot
+		data->next = createFileData();
+	else
+		data->data[data->count] = '\0'; //else add a terminator
 }
 
+//it prints the entire content of the file
 void printFileData(FileData *data)
 {
 	int a;
@@ -75,6 +107,7 @@ void printFileData(FileData *data)
 		printFileData(data->next);
 }
 
+//allocates a element of a file list
 FileList* createFileList(File* file)
 {
 	FileList* f = (FileList*)malloc(sizeof(FileList));
@@ -84,6 +117,7 @@ FileList* createFileList(File* file)
 	return f;
 }
 
+//delete the list element but note the underlying file
 int deleteFileList(FileList* fl)
 {
 	if (fl)
@@ -94,13 +128,13 @@ int deleteFileList(FileList* fl)
 		}
 		if (fl->next)
 			fl->next->prev = fl->prev;	
-		destroyFile(fl->file);
 		free (fl);
 		return 1;
 	}
 	return 0;
 }
 
+//insert a new element in front of the provided one
 void insertInFileList(File *file, FileList* ls)
 {
 	if (!ls)
@@ -115,6 +149,7 @@ void insertInFileList(File *file, FileList* ls)
 	f->next = ls;
 }
 
+//returns the FileList if it finds a file with such name, NULL otherwhise
 FileList* findFileList(char* name, FileList *fl)
 {
 	if (strcmp(name, fl->file->name) == 0)
@@ -126,6 +161,7 @@ FileList* findFileList(char* name, FileList *fl)
 	return NULL;
 }
 
+//delete all the elements from this element to the end of the list
 void recursiveDeleteFileList(FileList* file)
 {
 	if (file)
@@ -136,6 +172,7 @@ void recursiveDeleteFileList(FileList* file)
 	}	
 }
 
+//creats a list element pointing to the node
 NodeList* createNodeList(Node* node)
 {
 	NodeList* n = (NodeList*)malloc(sizeof(NodeList));
@@ -145,6 +182,7 @@ NodeList* createNodeList(Node* node)
 	return n;
 }
 
+//deallocate the list element, but not the underlying node
 int deleteNodeList(NodeList* node)
 {
 	if (!node)
@@ -153,11 +191,12 @@ int deleteNodeList(NodeList* node)
 		node->prev->next = node->next;
 	if (node->next)
 		node->next->prev = node->prev;
+	free(node);
 
-	free(node);	
 	return 1;
 }
 
+//insert a new list element in front of the provided one
 void insertInNodeList(Node* node, NodeList *ls)
 {
 	NodeList* n = createNodeList(node);
@@ -174,6 +213,7 @@ void insertInNodeList(Node* node, NodeList *ls)
 	}
 }
 
+//search for a node with the provided name in the list and returns it, NULL otherwhise
 NodeList* findNodeList(char* name, NodeList* ls)
 {
 	if (!ls)
@@ -190,6 +230,7 @@ NodeList* findNodeList(char* name, NodeList* ls)
 	return NULL;
 }
 
+//deletes all the elements from this to the end of the list
 void recursiveDeleteNodeList(NodeList* file)
 {
 	if (file)
@@ -200,6 +241,7 @@ void recursiveDeleteNodeList(NodeList* file)
 	}	
 }
 
+//allocates a node
 Node* createNode(char* nome)
 {
 	Node* n = (Node*)malloc(sizeof(Node));
@@ -217,6 +259,7 @@ Node* createNode(char* nome)
 	return n;
 }
 
+//deletes a node, it does not check if other nodes are child of this one
 void deleteNode(Node* node)
 {
 	if (node)
@@ -226,12 +269,21 @@ void deleteNode(Node* node)
 	}
 }
 
+//set a node as child of this node, retuns 1 if the operation has success,
+//returns 0 if it fails. it may fail beucase of the 2 is null, because the parent is full
+//or the child already has a parent or if the tree is too deep
 int addNodeNodeChild(Node* node, Node* child)
 {
+	if (!node || !child)
+		return 0;
+
 	if (node->depth >= 255)
 		return 0;
 
 	if (node->childCount >= 1024)
+		return 0;
+
+	if (child->parent)
 		return 0;
 
 	nodeHMapAdd(child, &node->nodeChildren);
@@ -241,9 +293,11 @@ int addNodeNodeChild(Node* node, Node* child)
 	return 1;
 }
 
+//set a file as a children of a node, retuns 1 if the operation is compleated, 0 otherwhise
+//it may fail if the parent is full, or if the tree is too deep
 int addNodeFileChild(Node* node, File* child)
 {
-	if (!node)
+	if (!node || !child)
 		return 0;
 
 	if (node->depth >= MAX_TREE_DEPTH)
@@ -252,26 +306,30 @@ int addNodeFileChild(Node* node, File* child)
 	if (node->childCount >= MAX_TREE_CHILD_COUNT)
 		return 0;
 
+
 	fileHMapAdd(child, &node->fileChildren);
 	node->childCount++;
 	
 	return 1;
 }
 
-void removeNodeNodeChild(Node* node, Node* child)
+//delete a node from the tree, the node must be empty and it must have a parent
+//else it does nothing
+void removeNodeNodeChild(Node* child)
 {
-	if (!child || child->childCount != 0)
+	Node *node = child->parent;
+	if (!node || !child || child->childCount != 0)
 	{
 		return;
 	}
 	if (nodeHMapRemove(child, &(node->nodeChildren)))
 	{
-		
 		node->childCount--;
 		deleteNode(child);
 	}
 }
 
+//remove a file from a node
 void removeFileNodeChild(Node* node, File* child)
 {
 	if (!child)
@@ -279,9 +337,11 @@ void removeFileNodeChild(Node* node, File* child)
 	if (fileHMapRemove(child, &(node->fileChildren)))
 	{
 		node->childCount--;
+		destroyFile(child);
 	}
 }
 
+//removes all the children of a node, then deletes the node
 void recursiveRemoveNode(Node* node, Node* parent)
 {
 	if (!node)
@@ -294,7 +354,7 @@ void recursiveRemoveNode(Node* node, Node* parent)
 		while (node->nodeChildren.list[a])
 			recursiveRemoveNode(node->nodeChildren.list[a]->node, node);
 	}
-	removeNodeNodeChild(parent, node);
+	removeNodeNodeChild(node);
 }
 
 short hash(char* name)
@@ -309,6 +369,7 @@ short hash(char* name)
 	return hash % HMAP_SIZE;
 }
 
+//add a file to a hash map
 void fileHMapAdd(File *file, FileHMap *map)
 {
 	if (!map->list[(hash(file->name))])
@@ -317,6 +378,7 @@ void fileHMapAdd(File *file, FileHMap *map)
 		insertInFileList(file, map->list[hash(file->name)]);	
 }
 
+//add a node to a hash map
 void nodeHMapAdd(Node* file, NodeHMap* map)
 {
 	if (!map->list[(hash(file->name))])
@@ -325,6 +387,7 @@ void nodeHMapAdd(Node* file, NodeHMap* map)
 		insertInNodeList(file, map->list[hash(file->name)]);
 }
 
+//return a file if it's inside a hash map, NULL otherwise
 File* fileHMapFind(char *string, FileHMap* map)
 {
 	if (!map->list[hash(string)])
@@ -332,6 +395,7 @@ File* fileHMapFind(char *string, FileHMap* map)
 	return findFileList(string, map->list[hash(string)])->file;
 }
 
+//return a node if it's inside a hash map, NULL otherwise
 Node* nodeHMapFind(char *string, NodeHMap* map)
 {
 	if (!map->list[hash(string)])
@@ -339,6 +403,7 @@ Node* nodeHMapFind(char *string, NodeHMap* map)
 	return findNodeList(string, map->list[hash(string)])->node;
 }
 
+//removes a file from a hash map, does not delete the file
 int fileHMapRemove(File* file, FileHMap *map)
 {
 	FileList *f = map->list[hash(file->name)];
@@ -349,9 +414,13 @@ int fileHMapRemove(File* file, FileHMap *map)
 	return deleteFileList(findFileList(file->name, f));
 }
 
+//removes a node from a hash map, does not delete the file
 int nodeHMapRemove(Node* file, NodeHMap *map)
 {
-	NodeList *f =  map->list[hash(file->name)];
+	if (!map || !file->name || !file)
+		return 0;
+
+	NodeList *f = map->list[hash(file->name)];
 
 	if (!f)
 		return 0;
@@ -380,6 +449,9 @@ void printeFile(File* file)
 	printFileData(&file->data);
 }
 
+//returns the word in the buffer,
+//a word is delimitated by \n, \0, /, and spaces
+//if it ends with a /, the slash is carried over in to the word
 int getNextString(char* buffer, FILE* f)
 {
 	int a = 0;
@@ -407,6 +479,8 @@ int getNextString(char* buffer, FILE* f)
 	return 1;
 }
 
+//retuns the children node with the name indicated inside a particular node, if 
+//suuch node exists, else NULL
 Node* locateInNode(Node* source, char* name)
 {
 	if (!source)
@@ -415,7 +489,7 @@ Node* locateInNode(Node* source, char* name)
 	return nodeHMapFind(name, &source->nodeChildren);
 }
 
-Node* locateRecursive(Node* source, FILE* f, char* buffer, int quietMode)
+Node* locateRecursive(Node* source, FILE* f, char* buffer)
 {
 	Node *m = source;
 	Node *supp;
@@ -426,28 +500,15 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, int quietMode)
 		if (!getNextString(buffer, f))
 			return NULL;
 
-		if (!quietMode)
-			printf("#next target dir: %s\n", buffer);
-
-		if (buffer[strlen(buffer)-1] != '/')
-		{
-			if (!quietMode)
-				printf("#trying to move to a file\n");
+		if (strlen(buffer) != 0 && buffer[strlen(buffer)-1] != '/')
 			return m;
-		}
 
 		supp = locateInNode(m, buffer);
 
 		if (supp)
-		{
 			m = supp;
-			if (!quietMode)
-				printf("#moved to dir: %s\n", m->name);
-		}
 		else
 		{
-			if (!quietMode)
-				printf("#failed to locate dir: %s\n", m->name);
 
 			if (((c = fgetc(f)) != '\n') && c != ' ')
 			{
@@ -466,12 +527,10 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, int quietMode)
 	return m;
 }
 
-int FSCreateFile(FILE* f, Node *root, char* buffer, int quietMode)
+int FSCreateFile(FILE* f, Node *root, char* buffer)
 {
-	if (!quietMode)
-		printf(">Called Create File Command\n");
 
-	Node* n = locateRecursive(root, f, buffer, quietMode);
+	Node* n = locateRecursive(root, f, buffer);
 	File* file = NULL;
 
 	if (strlen(buffer) == 0)
@@ -482,28 +541,22 @@ int FSCreateFile(FILE* f, Node *root, char* buffer, int quietMode)
 	if (n)
 	{
 
-		if (!quietMode)
-			printf("triyng to create\n");
-		file = createFile(buffer);
+		if (fileHMapFind(buffer, &n->fileChildren))
+			return 0;
 
-		if (!quietMode)
-			printf("created File\n");
+		file = createFile(buffer);
 
 		addNodeFileChild(n, file);
 
-		if (!quietMode)
-			printf("added file to node\n");
 		return 1;
 	}
 	return 0;	
 }
 
-int FSCreateDir(FILE* f, Node* root, char* buffer, int quietMode)
+int FSCreateDir(FILE* f, Node* root, char* buffer)
 {
-	if (!quietMode)
-		printf(">Called Create Dir Command\n");
 
-	Node* n = locateRecursive(root, f, buffer, quietMode);
+	Node* n = locateRecursive(root, f, buffer);
 
 	if (strlen(buffer) == 0)
 		return 0;
@@ -512,8 +565,9 @@ int FSCreateDir(FILE* f, Node* root, char* buffer, int quietMode)
 
 	if (n)
 	{
-		if (!quietMode)
-			printf("adding dir called: %s\n", buffer);
+		if (nodeHMapFind(buffer, &n->nodeChildren))
+			return 0;
+
 		addNodeNodeChild(n, createNode(buffer));
 		return 1;
 	}
@@ -552,9 +606,9 @@ void FSPrintTree(Node* root)
 }
 
 
-void FSRead(FILE* f, Node *root, char* buffer, int quietMode)
+void FSRead(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer, quietMode);
+	Node* n = locateRecursive(root, f, buffer);
 	File* file;
 	if (n)
 	{
@@ -567,20 +621,16 @@ void FSRead(FILE* f, Node *root, char* buffer, int quietMode)
 	}
 }
 
-void FSWrite(FILE* f, Node *root, char* buffer, int quietMode)
+void FSWrite(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer, quietMode);
+	Node* n = locateRecursive(root, f, buffer);
 	File* file = NULL;
 	char c = 0;
 	if (n)
 	{
-		if (!quietMode)
-			printf("#Searching for file\n");
 		file = fileHMapFind(buffer, &n->fileChildren);
 		if (file)
 		{
-			if (!quietMode)
-				printf("#writing\n");
 
 			while ((c = fgetc(f)) != '\"')
 				;
@@ -590,24 +640,19 @@ void FSWrite(FILE* f, Node *root, char* buffer, int quietMode)
 			}
 		}
 	}
-	else
-	{
-		if (!quietMode)
-			printf("#no dir\n");
-	}
 }
 
 
-void FSDelete(FILE* f, Node *root, char* buffer, int quietMode)
+void FSDelete(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer, quietMode);
+	Node* n = locateRecursive(root, f, buffer);
 	File* file;
 	if (n)
 	{
 		if (strlen(buffer) == 0)
 		{
 			if (n != root)
-				removeNodeNodeChild(n->parent, n);
+				removeNodeNodeChild(n);
 		}
 		else
 		{
@@ -619,9 +664,9 @@ void FSDelete(FILE* f, Node *root, char* buffer, int quietMode)
 }
 
 
-void FSDeleteRecursive(FILE* f, Node *root, char* buffer, int quietMode)
+void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
 {
-	Node* n = locateRecursive(root, f, buffer, quietMode);
+	Node* n = locateRecursive(root, f, buffer);
 	File* file;
 	if (n)
 	{
@@ -639,8 +684,19 @@ void FSDeleteRecursive(FILE* f, Node *root, char* buffer, int quietMode)
 	}
 }
 
+void FSDeleteRoot(Node *root)
+{
+	if (!root)
+		return;	
 
-void FSFind(FILE* f, Node *root, char* buffer, int quietMode)
+	if (root->parent)
+		return;
+
+	recursiveRemoveNode(root, NULL);	
+	deleteNode(root);
+}
+
+void FSFind(FILE* f, Node *root, char* buffer)
 {
 	char c;
 	int a = 0;
@@ -654,8 +710,6 @@ void FSFind(FILE* f, Node *root, char* buffer, int quietMode)
 		endLineReached = 1;
 	buffer[a] = '\0';
 
-	if (!quietMode)
-		printf("%s\n", buffer);
 	findInNodeAndPrint(root, buffer);
 }
 
