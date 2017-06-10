@@ -17,7 +17,7 @@
 #ifndef QUIET 
 #define WRITE_L(text) printf(text)
 #else
-#define WRITE(text) do {} while(0)
+#define WRITE_L(text) do {} while(0)
 #endif
 
 #ifndef QUIET 
@@ -34,6 +34,15 @@ typedef enum
 	FILE_PARENT_EXIST, 
 	BROKEN_PATH
 } locateResult;
+
+typedef enum 
+{
+	DIR_NAME, 
+	FILE_NAME, 
+	FINAL_DIR_NAME, 
+	ZERO_LENGHT_NAME, 
+	BROKEN_NAME
+} nextStringResult;
 
 int endLineReached;
 typedef struct nd Node;
@@ -93,6 +102,7 @@ void destroyFile(File* file); //DONE
 
 FileData* createFileData(); //DONE
 void writeFileData(FileData *data, char* dataToWrite); //DONE
+void writeCharToFileData(FileData *data, char dataToWrite); //DONE
 void printFileData(FileData *data); //DONE
 void destoyFileData(FileData *data); //DONE
 
@@ -125,8 +135,7 @@ void nodeHMapAdd(Node *node, NodeHMap *map); //DONE
 Node* nodeHMapFind(char *string, NodeHMap *map); //DONE
 int nodeHMapRemove(Node *node, NodeHMap *map); //DONE
 
-int getNextString(char* buffer, FILE* f); //DONE
-Node* locateInNode(Node* source, char* name); //DONE
+nextStringResult getNextString(char* buffer, FILE* f); //DONE
 Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out); //DONE
 
 int FSCreateFile(FILE* f, Node *root, char* buffer); //DONE
