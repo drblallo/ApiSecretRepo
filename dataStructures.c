@@ -1,7 +1,8 @@
 #include "dataStructures.h"
-#include "stdlib.h"
+#include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+#include "file.h"
+#include "node.h"
 
 int endLineReached = 0;
 
@@ -93,18 +94,18 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 
 		if (result == FINAL_DIR_NAME)
 		{
-			supp = nodeHMapFind(buffer, &m->nodeChildren);
+			supp = getNodeChildren(buffer, m);
 			if (supp)
 			{
 				WRITE_L("LOCATE: found dir all the way down: ");
-				WRITE_S(m->name);
+				WRITE_S(getNodeName(m));
 				*out = DIR_EXIST;
 				m = supp;	 
 			}			
 			else
 			{
 				WRITE_L("LOCATE: found dir parent: ");
-				WRITE_S(m->name);
+				WRITE_S(getNodeName(m));
 				*out = DIR_PARENT_EXIST;
 			}
 			return m;
@@ -112,22 +113,22 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 
 		if (result == FILE_NAME)
 		{
-			if (fileHMapFind(buffer, &m->fileChildren))
+			if (getFileChildren(buffer, m))
 			{
 				WRITE_L("LOCATE: found parent dir of existing file: ");
-				WRITE_S(m->name);
+				WRITE_S(getNodeName(m));
 				*out = FILE_EXIST;
 			}
 			else
 			{
 				WRITE_L("LOCATE: found parent dir of non existing file: ");
-				WRITE_S(m->name);
+				WRITE_S(getNodeName(m));
 				*out = FILE_PARENT_EXIST;
 			}
 			return m;
 		}
 
-		m = nodeHMapFind(buffer, &m->nodeChildren);;
+		m = getNodeChildren(buffer, m);
 
 	}while (m && !endLineReached);
 
@@ -201,33 +202,7 @@ int FSCreateDir(FILE* f, Node* root, char* buffer)
 //prints the structure of the tree
 void FSPrintTree(Node* root)
 {
-	
-	int a = 0; 
-	int b = 0;
-
-	for (b = 0; b < root->depth; b++)
-		putchar('-');
-	printf("%s\n", root->name);	
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		FileList* f = root->fileChildren.list[a];
-		while (f)
-		{
-			for (b = 0; b < root->depth + 1; b++)
-				putchar('-');
-			printf("%s\n", getFileName(getFileFromList(f)));
-			f = getNextFileList(f);
-		}	
-	}
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		NodeList* f = root->nodeChildren.list[a];
-		while (f)
-		{
-			FSPrintTree(getNodeFromList(f));
-			f = getNextNodeList(f);
-		}
-	}
+	printTree(root);	
 }
 
 
@@ -243,7 +218,7 @@ void FSRead(FILE* f, Node *root, char* buffer)
 		return;
 	}
 
-	file = fileHMapFind(buffer, &n->fileChildren);
+	file = getFileChildren(buffer, n);
 	WRITE("->READ: done");
 	printeFile(file);
 	putchar('\n');
@@ -262,7 +237,7 @@ void FSWrite(FILE* f, Node *root, char* buffer)
 		return;
 	}
 
-	file = fileHMapFind(buffer, &n->fileChildren);
+	file = getFileChildren(buffer, n);
 
 	while ((c = fgetc(f)) != '\"')
 		;
@@ -302,7 +277,7 @@ void FSDelete(FILE* f, Node *root, char* buffer)
 	}
 	else
 	{
-		file = fileHMapFind(buffer, &n->fileChildren);
+		file = getFileChildren(buffer, n);
 		removeNodeFileChild(n, file);	
 		WRITE("->DELETE: done");
 	}
@@ -317,7 +292,7 @@ void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
 
 	if (out == FILE_EXIST)
 	{
-		file = fileHMapFind(buffer, &n->fileChildren);
+		file = getFileChildren(buffer, n);
 		removeNodeFileChild(n, file);	
 		WRITE("->DELETE_R: done");
 		return;
@@ -334,7 +309,7 @@ void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
 		WRITE("->DELETE_R: trying to delete root, aborting");
 		return;
 	}
-	recursiveRemoveNode(n, n->parent);
+	recursiveRemoveNode(n, getNodeParent(n));
 	WRITE("->DELETE_R: done");
 }
 
@@ -343,7 +318,7 @@ void FSDeleteRoot(Node *root)
 	if (!root)
 		return;	
 
-	if (root->parent)
+	if (getNodeParent(root))
 		return;
 
 	recursiveRemoveNode(root, NULL);	
@@ -368,45 +343,4 @@ void FSFind(FILE* f, Node *root, char* buffer)
 	findInNodeAndPrint(root, buffer);
 }
 
-void printPath(Node* n)
-{
-	if (n)
-	{
-		if (n->parent)
-			printPath(n->parent);
-		printf("%s", n->name);
-	}
-}
 
-void findInNodeAndPrint(Node* n, char* name)
-{
-	if (!n)
-		return;
-
-	int a;
-	File *file;
-	NodeList *node;
-
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		node = n->nodeChildren.list[a];
-		while (node)
-		{
-			findInNodeAndPrint(getNodeFromList(node), name);
-			node = getNextNodeList(node);
-		}
-		
-	}
-	file = fileHMapFind(name, &n->fileChildren);
-	if (strcmp(name, n->name) == 0)
-	{
-		printPath(n);		
-		printf("\n");
-	}
-	if (file)
-	{
-		printPath(n);
-		printf("%s", getFileName(file));
-		printf("\n");
-	}
-}

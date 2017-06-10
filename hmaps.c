@@ -4,6 +4,62 @@
 #include "file.h"
 #include <stdlib.h>
 
+typedef struct ndhmp 
+{
+	NodeList *list[HMAP_SIZE];
+} NodeHMap;
+
+typedef struct flhmp
+{
+	FileList *list[HMAP_SIZE];	
+} FileHMap;
+
+FileHMap* createFileHMap()
+{
+	FileHMap* f = (FileHMap*)malloc(sizeof(FileHMap));
+	int a = 0;
+
+	for (a = 0; a < HMAP_SIZE; a++)
+		f->list[a] = NULL;
+
+	return f;
+}
+
+NodeHMap* createNodeHMap()
+{
+	NodeHMap* f = (NodeHMap*)malloc(sizeof(NodeHMap));
+	int a = 0;
+
+	for (a = 0; a < HMAP_SIZE; a++)
+		f->list[a] = NULL;
+
+	return f;
+}
+
+void deleteFileHMap(FileHMap* map)
+{
+	if (!map)
+		return;
+	int a;
+
+	for (a = 0; a < HMAP_SIZE; a++)
+		recursiveDeleteFileList(map->list[a]);
+
+	free(map);
+}
+
+void deleteNodeHMap(NodeHMap* map)
+{
+	if (!map)
+		return;
+	int a;
+
+	for (a = 0; a < HMAP_SIZE; a++)
+		recursiveDeleteNodeList(map->list[a]);
+
+	free(map);
+}
+
 short hash(char* name)
 {
 	int a = 0;
@@ -76,17 +132,38 @@ int fileHMapRemove(File* file, FileHMap *map)
 //removes a node from a hash map, does not delete the file
 int nodeHMapRemove(Node* file, NodeHMap *map)
 {
-	if (!map || !file->name || !file)
+	char* name = getNodeName(file);
+	if (!map || !name || !file)
 		return 0;
 
-	NodeList *f = map->list[hash(file->name)];
+	int hashed = hash(name);
+	NodeList *f = map->list[hashed];
 
 	if (!f)
 		return 0;
 
 	if (file == getNodeFromList(f))
-		map->list[hash(file->name)] = getNextNodeList(f);
+		map->list[hashed] = getNextNodeList(f);
 
-	return deleteNodeList(findNodeList(file->name, f)); 
+	return deleteNodeList(findNodeList(name, f)); 
 }
 
+FileList* getHMapFileList(FileHMap* map, int target)
+{
+	if (!map)
+		return NULL;
+	if (target < 0 || target >= HMAP_SIZE)
+		return NULL;
+
+	return map->list[target];
+}
+
+NodeList* getHMapNodeList(NodeHMap* map, int target)
+{
+	if (!map)
+		return NULL;
+	if (target < 0 || target >= HMAP_SIZE)
+		return NULL;
+
+	return map->list[target];
+}

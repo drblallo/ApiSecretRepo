@@ -2,10 +2,6 @@
 #define MAX_BUFFER_SIZE 257
 #define MAX_COMMAND_SIZE 15
 #include <stdio.h> 
-#include "file.h"
-#include "lists.h"
-#include "hmaps.h"
-#include "node.h"
 
 //#define QUIET
 
@@ -44,6 +40,8 @@ typedef enum
 	ZERO_LENGHT_NAME, 
 	BROKEN_NAME
 } nextStringResult;
+
+typedef struct nd Node;
 
 int endLineReached;
 

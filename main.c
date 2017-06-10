@@ -1,5 +1,6 @@
 #include "dataStructures.h"
 #include "string.h"
+#include "node.h"
 
 int getCommand(char* buffer, FILE* f)
 {
