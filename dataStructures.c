@@ -5,458 +5,8 @@
 
 int endLineReached = 0;
 
-//allocate a file with the privided name
-//if the name has lenght 0, it returns NULL
-//file data is set to \0
-File* createFile(char* nane)
-{
-	int l = strlen(nane);
-	if (l == 0)
-		return NULL;
-	File *f = (File*)malloc(sizeof(File));
-	f->name = (char*)malloc(sizeof(char) * (l+1));
-	strcpy(f->name, nane);	
-	f->data.next = NULL;
-	f->data.count = 0;
-	f->data.data[0] = '\0';
-	return f;
-}
 
-//deallocate all data within the file
-//deallocate the name
-//deallocate the file
-void destroyFile(File* file)
-{
-	if (file)
-	{
-		if (file->data.next)
-			destoyFileData(file->data.next);
-		free(file->name);
-		free(file);
-	}
-}
-
-//create a file data
-//the base lenght is set to 0
-//next is set to NULL
-FileData* createFileData()
-{
-	FileData* d = (FileData*)malloc(sizeof(FileData));
-	d->next = NULL;
-	d->data[0] = '\0';
-	d->count = 0;
-	return d;
-}
-
-//deallocate all the data in the list
-void destoyFileData(FileData *data)
-{
-	if (data)
-	{
-		destoyFileData(data->next);
-		free(data);
-	}
-}
-
-//write a single character in to a file
-void writeCharToFileData(FileData *data, char dataToWrite)
-{
-	while (data->count >= FILE_DATA_SIZE)
-	{
-		if (!data->next)
-			data->next = createFileData();
-		data = data->next;
-	}
-
-	data->data[data->count] = dataToWrite;
-	data->count++;
-
-	if (data->count >= FILE_DATA_SIZE)
-		data->next = createFileData();
-	else
-		data->data[data->count] = '\0';
-}
-
-
-//copies the string inside the provided file data
-//if it overflows it automatically creates another one and starts writing in the next
-void writeFileData(FileData *data, char* dataToWrite)
-{
-	unsigned s = 0;
-	if (!data)
-		return;
-	if (data->count >= FILE_DATA_SIZE) //if it's full write in the next one
-	{
-		if (!data->next)
-			data->next = createFileData();
-		writeFileData(data->next, dataToWrite);
-		return;
-	}
-
-	while (dataToWrite[s] != '\0') //while it's not the end of the string
-	{
-		writeCharToFileData(data, dataToWrite[s]);
-		s++;	
-	}	
-}
-
-//it prints the entire content of the file
-void printFileData(FileData *data)
-{
-	int a;
-	for (a = 0; a < data->count; a++)
-	{
-		putchar(data->data[a]);
-	}	
-	if (data->next)
-		printFileData(data->next);
-}
-
-//allocates a element of a file list
-FileList* createFileList(File* file)
-{
-	FileList* f = (FileList*)malloc(sizeof(FileList));
-	f->file = file;
-	f->next = NULL;
-	f->prev = NULL;
-	return f;
-}
-
-//delete the list element but note the underlying file
-int deleteFileList(FileList* fl)
-{
-	if (fl)
-	{
-		if (fl->prev)
-		{
-			fl->prev->next = fl->next;
-		}
-		if (fl->next)
-			fl->next->prev = fl->prev;	
-		free (fl);
-		return 1;
-	}
-	return 0;
-}
-
-//insert a new element in front of the provided one
-void insertInFileList(File *file, FileList* ls)
-{
-	if (!ls)
-		return;
-	FileList* f = createFileList(file);
-	if (ls->prev)
-	{
-		ls->prev->next = f;
-		f->prev = ls->prev;
-	}
-	ls->prev = f;
-	f->next = ls;
-}
-
-//returns the FileList if it finds a file with such name, NULL otherwhise
-FileList* findFileList(char* name, FileList *fl)
-{
-	if (strcmp(name, fl->file->name) == 0)
-		return fl;
-
-	if (fl->next)
-		return findFileList(name, fl->next);
-
-	return NULL;
-}
-
-//delete all the elements from this element to the end of the list
-void recursiveDeleteFileList(FileList* file)
-{
-	if (file)
-	{
-		if (file->next)
-			recursiveDeleteFileList(file->next);
-		deleteFileList(file);
-	}	
-}
-
-//creats a list element pointing to the node
-NodeList* createNodeList(Node* node)
-{
-	NodeList* n = (NodeList*)malloc(sizeof(NodeList));
-	n->next = NULL;
-	n->prev = NULL;
-	n->node = node;
-	return n;
-}
-
-//deallocate the list element, but not the underlying node
-int deleteNodeList(NodeList* node)
-{
-	if (!node)
-		return 0;
-	if (node->prev)
-		node->prev->next = node->next;
-	if (node->next)
-		node->next->prev = node->prev;
-	free(node);
-
-	return 1;
-}
-
-//insert a new list element in front of the provided one
-void insertInNodeList(Node* node, NodeList *ls)
-{
-	NodeList* n = createNodeList(node);
-	if (ls->prev)
-	{
-		ls->prev->next = n;
-		n->prev = ls->prev;
-	}
-
-	if (ls->next)
-	{
-		n->next = ls;
-		ls->prev = n;
-	}
-}
-
-//search for a node with the provided name in the list and returns it, NULL otherwhise
-NodeList* findNodeList(char* name, NodeList* ls)
-{
-	if (!ls)
-		return NULL;
-
-	if (strcmp(name, ls->node->name) == 0)
-		return ls;
-
-	if (ls->next)
-	{
-		return findNodeList(name, ls->next);
-	}
-
-	return NULL;
-}
-
-//deletes all the elements from this to the end of the list
-void recursiveDeleteNodeList(NodeList* file)
-{
-	if (file)
-	{
-		if (file->next)
-			recursiveDeleteNodeList(file->next);
-		deleteNodeList(file);
-	}	
-}
-
-//allocates a node
-Node* createNode(char* nome)
-{
-	Node* n = (Node*)malloc(sizeof(Node));
-	int a;
-	n->childCount = 0;
-	n->depth = 0;
-	n->parent = NULL;
-	n->name = (char*)malloc(sizeof(char)*(strlen(nome)+1));
-	strcpy(n->name, nome);
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		n->fileChildren.list[a] = NULL;
-		n->nodeChildren.list[a] = NULL;
-	}
-	return n;
-}
-
-//deletes a node, it does not check if other nodes are child of this one
-void deleteNode(Node* node)
-{
-	if (node)
-	{
-		free (node->name);
-		free (node);
-	}
-}
-
-//set a node as child of this node, retuns 1 if the operation has success,
-//returns 0 if it fails. it may fail beucase of the 2 is null, because the parent is full
-//or the child already has a parent or if the tree is too deep
-int addNodeNodeChild(Node* node, Node* child)
-{
-	if (!node || !child)
-		return 0;
-
-	if (node->depth >= 255)
-		return 0;
-
-	if (node->childCount >= 1024)
-		return 0;
-
-	if (child->parent)
-		return 0;
-
-	nodeHMapAdd(child, &node->nodeChildren);
-	child->depth = node->depth + 1;
-	child->parent = node;
-	node->childCount++;
-	return 1;
-}
-
-//set a file as a children of a node, retuns 1 if the operation is compleated, 0 otherwhise
-//it may fail if the parent is full, or if the tree is too deep
-int addNodeFileChild(Node* node, File* child)
-{
-	if (!node || !child)
-		return 0;
-
-	if (node->depth >= MAX_TREE_DEPTH)
-		return 0;
-
-	if (node->childCount >= MAX_TREE_CHILD_COUNT)
-		return 0;
-
-
-	fileHMapAdd(child, &node->fileChildren);
-	node->childCount++;
-	
-	return 1;
-}
-
-//delete a node from the tree, the node must be empty and it must have a parent
-//else it does nothing
-void removeNodeNodeChild(Node* child)
-{
-	Node *node = child->parent;
-	if (!node || !child || child->childCount != 0)
-	{
-		return;
-	}
-	if (nodeHMapRemove(child, &(node->nodeChildren)))
-	{
-		node->childCount--;
-		deleteNode(child);
-	}
-}
-
-//remove a file from a node
-void removeFileNodeChild(Node* node, File* child)
-{
-	if (!child)
-		return;
-	if (fileHMapRemove(child, &(node->fileChildren)))
-	{
-		node->childCount--;
-		destroyFile(child);
-	}
-}
-
-//removes all the children of a node, then deletes the node
-void recursiveRemoveNode(Node* node, Node* parent)
-{
-	if (!node)
-		return;
-	int a = 0;
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		while (node->fileChildren.list[a])
-			removeFileNodeChild(node, node->fileChildren.list[a]->file);
-		while (node->nodeChildren.list[a])
-			recursiveRemoveNode(node->nodeChildren.list[a]->node, node);
-	}
-	removeNodeNodeChild(node);
-}
-
-short hash(char* name)
-{
-	int a = 0;
-	short hash = 0;
-	while (name[a] != '\0')
-	{
-		hash += name[a];
-		a++;
-	}
-	return hash % HMAP_SIZE;
-}
-
-//add a file to a hash map
-void fileHMapAdd(File *file, FileHMap *map)
-{
-	if (!map->list[(hash(file->name))])
-		map->list[(hash(file->name))] = createFileList(file);
-	else
-		insertInFileList(file, map->list[hash(file->name)]);	
-}
-
-//add a node to a hash map
-void nodeHMapAdd(Node* file, NodeHMap* map)
-{
-	if (!map->list[(hash(file->name))])
-		map->list[(hash(file->name))] = createNodeList(file);
-	else
-		insertInNodeList(file, map->list[hash(file->name)]);
-}
-
-//return a file if it's inside a hash map, NULL otherwise
-File* fileHMapFind(char *string, FileHMap* map)
-{
-	if (!map->list[hash(string)])
-		return NULL;
-
-	return findFileList(string, map->list[hash(string)])->file;
-}
-
-//return a node if it's inside a hash map, NULL otherwise
-Node* nodeHMapFind(char *string, NodeHMap* map)
-{
-	if (!map->list[hash(string)])
-		return NULL;
-
-	return findNodeList(string, map->list[hash(string)])->node;
-}
-
-//removes a file from a hash map, does not delete the file
-int fileHMapRemove(File* file, FileHMap *map)
-{
-	FileList *f = map->list[hash(file->name)];
-
-	if (!f)
-		return 0;
-
-	if (file == f->file)
-		map->list[hash(file->name)] = f->next;
-
-	return deleteFileList(findFileList(file->name, f));
-}
-
-//removes a node from a hash map, does not delete the file
-int nodeHMapRemove(Node* file, NodeHMap *map)
-{
-	if (!map || !file->name || !file)
-		return 0;
-
-	NodeList *f = map->list[hash(file->name)];
-
-	if (!f)
-		return 0;
-
-	if (file == f->node)
-		map->list[hash(file->name)] = f->next;
-
-	return deleteNodeList(findNodeList(file->name, f)); 
-}
-
-void writeFile(File* file, char* data)
-{
-	writeFileData(&(file->data), data);
-}
-
-void writeFileChar(File* file, char data)
-{
-	writeCharToFileData(&file->data, data);
-}
-
-void printeFile(File* file)
-{
-	printFileData(&file->data);
-}
-
-//returns the word in the buffer,
+//returns the next word in the buffer,
 //a word is delimitated by \n, \0, /, and spaces
 //if it ends with a /, the slash is carried over in to the word
 //return is equal to zero if the string point to a dir
@@ -665,8 +215,8 @@ void FSPrintTree(Node* root)
 		{
 			for (b = 0; b < root->depth + 1; b++)
 				putchar('-');
-			printf("%s\n", f->file->name);
-			f = f->next;
+			printf("%s\n", getFileName(getFileFromList(f)));
+			f = getNextFileList(f);
 		}	
 	}
 	for (a = 0; a < HMAP_SIZE; a++)
@@ -674,8 +224,8 @@ void FSPrintTree(Node* root)
 		NodeList* f = root->nodeChildren.list[a];
 		while (f)
 		{
-			FSPrintTree(f->node);
-			f = f->next;
+			FSPrintTree(getNodeFromList(f));
+			f = getNextNodeList(f);
 		}
 	}
 }
@@ -753,7 +303,7 @@ void FSDelete(FILE* f, Node *root, char* buffer)
 	else
 	{
 		file = fileHMapFind(buffer, &n->fileChildren);
-		removeFileNodeChild(n, file);	
+		removeNodeFileChild(n, file);	
 		WRITE("->DELETE: done");
 	}
 }
@@ -768,7 +318,7 @@ void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
 	if (out == FILE_EXIST)
 	{
 		file = fileHMapFind(buffer, &n->fileChildren);
-		removeFileNodeChild(n, file);	
+		removeNodeFileChild(n, file);	
 		WRITE("->DELETE_R: done");
 		return;
 	}
@@ -842,8 +392,8 @@ void findInNodeAndPrint(Node* n, char* name)
 		node = n->nodeChildren.list[a];
 		while (node)
 		{
-			findInNodeAndPrint(node->node, name);
-			node = node->next;
+			findInNodeAndPrint(getNodeFromList(node), name);
+			node = getNextNodeList(node);
 		}
 		
 	}
@@ -856,7 +406,7 @@ void findInNodeAndPrint(Node* n, char* name)
 	if (file)
 	{
 		printPath(n);
-		printf("%s", file->name);
+		printf("%s", getFileName(file));
 		printf("\n");
 	}
 }
