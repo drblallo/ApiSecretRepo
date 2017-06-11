@@ -91,14 +91,14 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 			if (supp)
 			{
 				WRITE_L("LOCATE: found dir all the way down: ");
-				WRITE_S(getNodeName(m));
+				WRITE_S(nodeGetName(m));
 				*out = DIR_EXIST;
 				m = supp;	 
 			}			
 			else
 			{
 				WRITE_L("LOCATE: found dir parent: ");
-				WRITE_S(getNodeName(m));
+				WRITE_S(nodeGetName(m));
 				*out = DIR_PARENT_EXIST;
 			}
 			return m;
@@ -109,13 +109,13 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 			if (nodeGetFileChildren(buffer, m))
 			{
 				WRITE_L("LOCATE: found parent dir of existing file: ");
-				WRITE_S(getNodeName(m));
+				WRITE_S(nodeGetName(m));
 				*out = FILE_EXIST;
 			}
 			else
 			{
 				WRITE_L("LOCATE: found parent dir of non existing file: ");
-				WRITE_S(getNodeName(m));
+				WRITE_S(nodeGetName(m));
 				*out = FILE_PARENT_EXIST;
 			}
 			return m;

@@ -9,3 +9,5 @@ void filePrint(File* file);
 void fileDestroy(File* file); 
 char* fileGetName(File* file); 
 void fileClearData(File* file);
+void fileSetDeapth(File* f, int deapth);
+int fileGetDepth(File* f);

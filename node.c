@@ -33,13 +33,13 @@ Node* nodeCreate(char* nome)
 //deletes a node, it does not check if other nodes are child of this one
 void nodeDestroy(Node* node)
 {
-	if (node)
-	{
-		fileHMapDestroy(node->fileChildren);
-		nodeHMapDestroy(node->nodeChildren);
-		free (node->name);
-		free (node);
-	}
+	if (!node)
+		return;
+
+	fileHMapDestroy(node->fileChildren);
+	nodeHMapDestroy(node->nodeChildren);
+	free (node->name);
+	free (node);
 }
 
 //set a node as child of this node, retuns 1 if the operation has success,
@@ -79,7 +79,6 @@ int nodeAddFileChild(Node* node, File* child)
 	if (node->childCount >= MAX_TREE_CHILD_COUNT)
 		return 0;
 
-
 	fileHMapAdd(child, node->fileChildren);
 	node->childCount++;
 	
@@ -92,9 +91,8 @@ void nodeRemoveNodeChild(Node* child)
 {
 	Node *node = child->parent;
 	if (!node || !child || child->childCount != 0)
-	{
 		return;
-	}
+
 	if (nodeHMapRemove(child, node->nodeChildren))
 	{
 		node->childCount--;
@@ -107,6 +105,7 @@ void nodeRemoveFileChild(Node* node, File* child)
 {
 	if (!child)
 		return;
+
 	if (fileHMapRemove(child, node->fileChildren))
 	{
 		node->childCount--;
@@ -119,6 +118,7 @@ void nodeRecursiveRemove(Node* node, Node* parent)
 {
 	if (!node)
 		return;
+
 	FileList *fl;
 	NodeList *nl;
 
@@ -136,6 +136,7 @@ char* nodeGetName(Node* node)
 {
 	if (!node)
 		return NULL;
+
 	return node->name;
 }
 
@@ -144,6 +145,7 @@ Node* nodeGetNodeChildren(char* name, Node* parent)
 {
 	if (!parent)
 		return NULL;
+
 	return nodeHMapFind(name, parent->nodeChildren);
 }
 
@@ -152,6 +154,7 @@ File* nodeGetFileChildren(char* name, Node* parent)
 {
 	if (!parent)
 		return NULL;
+
 	return fileHMapFind(name, parent->fileChildren);
 }
 
@@ -160,6 +163,7 @@ int nodeGetDepth(Node* n)
 {
 	if (!n)
 		return 0;
+
 	return n->depth;
 }
 
@@ -168,77 +172,59 @@ Node* nodeGetParent(Node* n)
 {
 	if (!n)
 		return NULL;
+
 	return n->parent;
+}
+
+void nodePrintFileName(File* f)
+{
+	int b;
+	for (b = 0; b < fileGetDepth(f); b++)
+		putchar('-');
+
+	printf("%s\n", fileGetName(f));
 }
 
 //prints the structure of the node and of his childrens
 void nodePrintTree(Node* root)
 {
-	int a = 0; 
 	int b = 0;
 
 	for (b = 0; b < nodeGetDepth(root); b++)
 		putchar('-');
+
 	printf("%s\n", nodeGetName(root));	
 
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		FileList* f = fileHMapGetList(root->fileChildren, a);
-		while (f)
-		{
-			for (b = 0; b < nodeGetDepth(root) + 1; b++)
-				putchar('-');
-			printf("%s\n", fileGetName(fileListGetFile(f)));
-			f = fileListGetNext(f);
-		}	
-	}
-
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		NodeList* f = nodeHMapGetList(root->nodeChildren, a);
-		while (f)
-		{
-			nodePrintTree(nodeListGetNode(f));
-			f = nodeListGetNext(f);
-		}
-	}
-
+	fileHMapApplyToAllMembers(root->fileChildren, nodePrintFileName);
+	nodeHMapApplyToAllMembers(root->nodeChildren, nodePrintTree);
 }
 
 void nodePrintPath(Node* n)
 {
-	if (n)
-	{
-		if (nodeGetParent(n))
-			nodePrintPath(nodeGetParent(n));
-		printf("%s", nodeGetName(n));
-	}
+	if (!n)
+		return;
+
+	if (nodeGetParent(n))
+		nodePrintPath(nodeGetParent(n));
+
+	printf("%s", nodeGetName(n));
 }
 
 void nodeFindAndPrint(Node* n, char* name)
 {
 	if (!n)
 		return;
-
-	int a;
 	File *file;
-	NodeList *node;
 
-	for (a = 0; a < HMAP_SIZE; a++)
-	{
-		node = nodeHMapGetList(n->nodeChildren, a);
-		while (node)
-		{
-			nodeFindAndPrint(nodeListGetNode(node), name);
-			node = nodeListGetNext(node);
-		}		
-	}
+	nodeHMapApplyToAllMembersString(n->nodeChildren, nodeFindAndPrint, name);
+
 	file = nodeGetFileChildren(name, n);
 	if (strcmp(name, nodeGetName(n)) == 0)
 	{
 		nodePrintPath(n);		
 		printf("\n");
 	}
+
 	if (file)
 	{
 		nodePrintPath(n);

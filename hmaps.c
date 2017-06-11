@@ -3,6 +3,7 @@
 #include "node.h"
 #include "file.h"
 #include <stdlib.h>
+#define HMAP_SIZE 32
 
 typedef struct ndhmp 
 {
@@ -207,4 +208,51 @@ FileList* fileHMapGetFront(FileHMap* map)
 	}
 
 	return NULL;
+}
+
+//applys the given function to all members of the map
+void fileHMapApplyToAllMembers(FileHMap* map, void (*f) (File*))
+{
+	int a;
+	FileList *ls;
+	for (a = 0; a < HMAP_SIZE; a++)
+	{
+		ls = map->list[a];
+		while (ls)
+		{
+			f(fileListGetFile(ls));
+			ls = fileListGetNext(ls);
+		}
+	}
+}
+
+//applys the given function to all members of the map
+void nodeHMapApplyToAllMembers(NodeHMap* map, void (*f) (Node*))
+{
+	int a;
+	NodeList *ls;
+	for (a = 0; a < HMAP_SIZE; a++)
+	{
+		ls = map->list[a];
+		while (ls)
+		{
+			f(nodeListGetNode(ls));
+			ls = nodeListGetNext(ls);
+		}
+	}
+}
+
+void nodeHMapApplyToAllMembersString(NodeHMap* map, void (*f) (Node*, char*), char* s)
+{
+	int a;
+	NodeList *ls;
+	for (a = 0; a < HMAP_SIZE; a++)
+	{
+		ls = map->list[a];
+		while (ls)
+		{
+			f(nodeListGetNode(ls), s);
+			ls = nodeListGetNext(ls);
+		}
+	}
 }

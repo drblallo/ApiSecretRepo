@@ -7,6 +7,7 @@ typedef struct fl
 {
 	FileData *data;
 	char *name;
+	int depth;
 } File;
 
 //allocate a file with the privided name
@@ -21,6 +22,7 @@ File* fileCreate(char* nane)
 	f->name = (char*)malloc(sizeof(char) * (l+1));
 	strcpy(f->name, nane);	
 	f->data =  fileDataCreate();
+	f->depth = 0;
 	return f;
 }
 
@@ -73,4 +75,21 @@ void fileClearData(File* file)
 
 	fileDataDestroy(file->data);
 	file->data = fileDataCreate();
+}
+
+//set the depth of a file
+void fileSetDeapth(File* f, int deapth)
+{
+	if (!f)
+		return;
+	f->depth = deapth;
+}
+
+//returns the depth of a file
+int fileGetDepth(File* f)
+{
+	if (!f)
+		return -1;
+
+	return f->depth;
 }

@@ -1,5 +1,4 @@
 #pragma once
-#define HMAP_SIZE 32
 
 typedef struct ndhmp NodeHMap;
 typedef struct flhmp FileHMap;
@@ -16,7 +15,7 @@ File* fileHMapFind(char *string, FileHMap *map);
 int fileHMapRemove(File *file, FileHMap *map); 
 void fileHMapDestroy(FileHMap* map);
 FileList* fileHMapGetFront(FileHMap* map); 
-FileList* fileHMapGetList(FileHMap* map, int list);
+void fileHMapApplyToAllMembers(FileHMap* map, void (*f) (File*));
 
 NodeHMap* nodeHMapCreate(); 
 void nodeHMapAdd(Node *node, NodeHMap *map); 
@@ -24,4 +23,5 @@ Node* nodeHMapFind(char *string, NodeHMap *map);
 int nodeHMapRemove(Node *node, NodeHMap *map); 
 void nodeHMapDestroy(NodeHMap* map);
 NodeList* nodeHMapGetFront(NodeHMap* map); 
-NodeList* nodeHMapGetList(NodeHMap* map, int list);
+void nodeHMapApplyToAllMembers(NodeHMap* map, void (*f) (Node*));
+void nodeHMapApplyToAllMembersString(NodeHMap* map, void (*f) (Node*, char*), char* s);
