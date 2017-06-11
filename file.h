@@ -1,11 +1,11 @@
 #pragma once
 
-struct fl;
 typedef struct fl File;
 
-File* createFile(char* name); //DONE
-void writeFile(File* file, char* data); //DONE
-void writeFileChar(File* file, char character); //DONE
-void printeFile(File* file); //DONE
-void destroyFile(File* file); //DONE
-char* getFileName(File* file); //DONE
+File* fileCreate(char* name); 
+void fileWrite(File* file, char* data); 
+void fileWriteChar(File* file, char character); 
+void filePrint(File* file); 
+void fileDestroy(File* file); 
+char* fileGetName(File* file); 
+void fileClearData(File* file);

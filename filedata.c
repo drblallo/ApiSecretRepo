@@ -1,6 +1,7 @@
 #include "filedata.h"
 #include <stdlib.h>
 #include <stdio.h>
+#define FILE_DATA_SIZE 256
 
 struct fldt
 {
@@ -12,7 +13,7 @@ struct fldt
 //create a file data
 //the base lenght is set to 0
 //next is set to NULL
-FileData* createFileData()
+FileData* fileDataCreate()
 {
 	FileData* d = (FileData*)malloc(sizeof(FileData));
 	d->next = NULL;
@@ -22,22 +23,22 @@ FileData* createFileData()
 }
 
 //deallocate all the data in the list
-void destoyFileData(FileData *data)
+void fileDataDestroy(FileData *data)
 {
 	if (data)
 	{
-		destoyFileData(data->next);
+		fileDataDestroy(data->next);
 		free(data);
 	}
 }
 
 //write a single character in to a file
-void writeCharToFileData(FileData *data, char dataToWrite)
+void fileDataWriteChar(FileData *data, char dataToWrite)
 {
 	while (data->count >= FILE_DATA_SIZE)
 	{
 		if (!data->next)
-			data->next = createFileData();
+			data->next = fileDataCreate();
 		data = data->next;
 	}
 
@@ -45,7 +46,7 @@ void writeCharToFileData(FileData *data, char dataToWrite)
 	data->count++;
 
 	if (data->count >= FILE_DATA_SIZE)
-		data->next = createFileData();
+		data->next = fileDataCreate();
 	else
 		data->data[data->count] = '\0';
 }
@@ -53,7 +54,7 @@ void writeCharToFileData(FileData *data, char dataToWrite)
 
 //copies the string inside the provided file data
 //if it overflows it automatically creates another one and starts writing in the next
-void writeFileData(FileData *data, char* dataToWrite)
+void fileDataWrite(FileData *data, char* dataToWrite)
 {
 	unsigned s = 0;
 	if (!data)
@@ -61,20 +62,20 @@ void writeFileData(FileData *data, char* dataToWrite)
 	if (data->count >= FILE_DATA_SIZE) //if it's full write in the next one
 	{
 		if (!data->next)
-			data->next = createFileData();
-		writeFileData(data->next, dataToWrite);
+			data->next = fileDataCreate();
+		fileDataWrite(data->next, dataToWrite);
 		return;
 	}
 
 	while (dataToWrite[s] != '\0') //while it's not the end of the string
 	{
-		writeCharToFileData(data, dataToWrite[s]);
+		fileDataWriteChar(data, dataToWrite[s]);
 		s++;	
 	}	
 }
 
 //it prints the entire content of the file
-void printFileData(FileData *data)
+void fileDataPrint(FileData *data)
 {
 	int a;
 	for (a = 0; a < data->count; a++)
@@ -82,12 +83,6 @@ void printFileData(FileData *data)
 		putchar(data->data[a]);
 	}	
 	if (data->next)
-		printFileData(data->next);
+		fileDataPrint(data->next);
 }
 
-FileData* getNextFileData(FileData *data)
-{
-	if (!data)
-		return NULL;
-	return data->next;
-}

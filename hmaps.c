@@ -14,7 +14,8 @@ typedef struct flhmp
 	FileList *list[HMAP_SIZE];	
 } FileHMap;
 
-FileHMap* createFileHMap()
+//allocates a file maps 
+FileHMap* fileHMapCreate()
 {
 	FileHMap* f = (FileHMap*)malloc(sizeof(FileHMap));
 	int a = 0;
@@ -25,7 +26,8 @@ FileHMap* createFileHMap()
 	return f;
 }
 
-NodeHMap* createNodeHMap()
+//allocates a node map
+NodeHMap* nodeHMapCreate()
 {
 	NodeHMap* f = (NodeHMap*)malloc(sizeof(NodeHMap));
 	int a = 0;
@@ -36,30 +38,33 @@ NodeHMap* createNodeHMap()
 	return f;
 }
 
-void deleteFileHMap(FileHMap* map)
+//deallocate a file map, as well as all the lists inside it
+void fileHMapDestroy(FileHMap* map)
 {
 	if (!map)
 		return;
 	int a;
 
 	for (a = 0; a < HMAP_SIZE; a++)
-		recursiveDeleteFileList(map->list[a]);
+		fileListRecursiveDelete(map->list[a]);
 
 	free(map);
 }
 
-void deleteNodeHMap(NodeHMap* map)
+//deallocates a node map, as well as all the lists inside it
+void nodeHMapDestroy(NodeHMap* map)
 {
 	if (!map)
 		return;
 	int a;
 
 	for (a = 0; a < HMAP_SIZE; a++)
-		recursiveDeleteNodeList(map->list[a]);
+		nodeListRecursiveDelete(map->list[a]);
 
 	free(map);
 }
 
+//simple hashing function
 short hash(char* name)
 {
 	int a = 0;
@@ -75,25 +80,25 @@ short hash(char* name)
 //add a file to a hash map
 void fileHMapAdd(File *file, FileHMap *map)
 {
-	char* name = getFileName(file);
+	char* name = fileGetName(file);
 	int hashed = hash(name);
 
 	if (!map->list[hashed])
-		map->list[hashed] = createFileList(file);
+		map->list[hashed] = fileListCreate(file);
 	else
-		insertInFileList(file, map->list[hashed]);	
+		fileListInsert(file, map->list[hashed]);	
 }
 
 //add a node to a hash map
 void nodeHMapAdd(Node* file, NodeHMap* map)
 {
-	char* name = getNodeName(file);
+	char* name = nodeGetName(file);
 	int hashed = hash(name);
 
 	if (!map->list[hashed])
-		map->list[hashed] = createNodeList(file);
+		map->list[hashed] = nodeListCreate(file);
 	else
-		insertInNodeList(file, map->list[hashed]);
+		nodeListInsert(file, map->list[hashed]);
 }
 
 //return a file if it's inside a hash map, NULL otherwise
@@ -102,7 +107,7 @@ File* fileHMapFind(char *string, FileHMap* map)
 	if (!map->list[hash(string)])
 		return NULL;
 
-	return getFileFromList(findFileList(string, map->list[hash(string)]));
+	return fileListGetFile(fileListFindByName(string, map->list[hash(string)]));
 }
 
 //return a node if it's inside a hash map, NULL otherwise
@@ -111,28 +116,28 @@ Node* nodeHMapFind(char *string, NodeHMap* map)
 	if (!map->list[hash(string)])
 		return NULL;
 
-	return getNodeFromList(findNodeList(string, map->list[hash(string)]));
+	return nodeListGetNode(nodeListFindByName(string, map->list[hash(string)]));
 }
 
 //removes a file from a hash map, does not delete the file
 int fileHMapRemove(File* file, FileHMap *map)
 {
-	char* name = getFileName(file);
-	FileList *f = map->list[hash(name)];
+	int hashed = hash(fileGetName(file));
+	FileList *f = map->list[hashed];
 
 	if (!f)
 		return 0;
 
-	if (file == getFileFromList(f))
-		map->list[hash(name)] = getNextFileList(f);
+	if (file == fileListGetFile(f))
+		map->list[hashed] = fileListGetNext(f);
 
-	return deleteFileList(findFileList(name, f));
+	return fileListDestroy(fileListFind(file, f));
 }
 
 //removes a node from a hash map, does not delete the file
 int nodeHMapRemove(Node* file, NodeHMap *map)
 {
-	char* name = getNodeName(file);
+	char* name = nodeGetName(file);
 	if (!map || !name || !file)
 		return 0;
 
@@ -142,28 +147,64 @@ int nodeHMapRemove(Node* file, NodeHMap *map)
 	if (!f)
 		return 0;
 
-	if (file == getNodeFromList(f))
-		map->list[hashed] = getNextNodeList(f);
+	if (file == nodeListGetNode(f))
+		map->list[hashed] = nodeListGetNext(f);
 
-	return deleteNodeList(findNodeList(name, f)); 
+	return nodeListDestroy(nodeListFind(file, f)); 
 }
 
-FileList* getHMapFileList(FileHMap* map, int target)
+//return the target list inside the map
+FileList* fileHMapGetList(FileHMap* map, int target)
 {
 	if (!map)
 		return NULL;
+
 	if (target < 0 || target >= HMAP_SIZE)
 		return NULL;
 
 	return map->list[target];
 }
 
-NodeList* getHMapNodeList(NodeHMap* map, int target)
+//returns the target list inside the map
+NodeList* nodeHMapGetList(NodeHMap* map, int target)
 {
 	if (!map)
 		return NULL;
+
 	if (target < 0 || target >= HMAP_SIZE)
 		return NULL;
 
 	return map->list[target];
+}
+
+//returns the first element of the map, NULL if the map is empty
+NodeList* nodeHMapGetFront(NodeHMap* map)
+{
+	int a;
+	if (!map)
+		return NULL;
+
+	for (a = 0; a < HMAP_SIZE; a++)
+	{
+		if (map->list[a] != NULL)
+			return map->list[a];
+	}
+
+	return NULL;
+}
+
+//returns the first element of the map, NULL if the map is empty
+FileList* fileHMapGetFront(FileHMap* map)
+{
+	int a;
+	if (!map)
+		return NULL;
+
+	for (a = 0; a < HMAP_SIZE; a++)
+	{
+		if (map->list[a] != NULL)
+			return map->list[a];
+	}
+
+	return NULL;
 }

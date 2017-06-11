@@ -12,7 +12,7 @@ typedef struct fl
 //allocate a file with the privided name
 //if the name has lenght 0, it returns NULL
 //file data is set to \0
-File* createFile(char* nane)
+File* fileCreate(char* nane)
 {
 	int l = strlen(nane);
 	if (l == 0)
@@ -20,43 +20,57 @@ File* createFile(char* nane)
 	File *f = (File*)malloc(sizeof(File));
 	f->name = (char*)malloc(sizeof(char) * (l+1));
 	strcpy(f->name, nane);	
-	f->data =  createFileData();
+	f->data =  fileDataCreate();
 	return f;
 }
 
 //deallocate all data within the file
 //deallocate the name
 //deallocate the file
-void destroyFile(File* file)
+void fileDestroy(File* file)
 {
 	if (file)
 	{
 		if (file->data)
-			destoyFileData(file->data);
+			fileDataDestroy(file->data);
 		free(file->name);
 		free(file);
 	}
 }
 
 
-char* getFileName(File* file)
+//returns a pointer to the string that contains the file name
+char* fileGetName(File* file)
 {
 	if (!file)
 		return NULL;
 	return file->name;
 }
 
-void writeFile(File* file, char* data)
+//appends a string to the file
+void fileWrite(File* file, char* data)
 {
-	writeFileData(file->data, data);
+	fileDataWrite(file->data, data);
 }
 
-void writeFileChar(File* file, char data)
+//appends a char to the file
+void fileWriteChar(File* file, char data)
 {
-	writeCharToFileData(file->data, data);
+	fileDataWriteChar(file->data, data);
 }
 
-void printeFile(File* file)
+//prints the content of the file
+void filePrint(File* file)
 {
-	printFileData(file->data);
+	fileDataPrint(file->data);
+}
+
+//removes the entire content of the file
+void fileClearData(File* file)
+{
+	if (!file)
+		return;
+
+	fileDataDestroy(file->data);
+	file->data = fileDataCreate();
 }

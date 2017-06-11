@@ -19,7 +19,7 @@ struct fllst
 };
 
 //allocates a element of a file list
-FileList* createFileList(File* file)
+FileList* fileListCreate(File* file)
 {
 	FileList* f = (FileList*)malloc(sizeof(FileList));
 	f->file = file;
@@ -29,7 +29,7 @@ FileList* createFileList(File* file)
 }
 
 //delete the list element but note the underlying file
-int deleteFileList(FileList* fl)
+int fileListDestroy(FileList* fl)
 {
 	if (fl)
 	{
@@ -46,11 +46,11 @@ int deleteFileList(FileList* fl)
 }
 
 //insert a new element in front of the provided one
-void insertInFileList(File *file, FileList* ls)
+void fileListInsert(File *file, FileList* ls)
 {
 	if (!ls)
 		return;
-	FileList* f = createFileList(file);
+	FileList* f = fileListCreate(file);
 	if (ls->prev)
 	{
 		ls->prev->next = f;
@@ -60,31 +60,71 @@ void insertInFileList(File *file, FileList* ls)
 	f->next = ls;
 }
 
-//returns the FileList if it finds a file with such name, NULL otherwhise
-FileList* findFileList(char* name, FileList *fl)
+//returns the FileList pointing to a file with the same name, NULL if it's not found in the list
+FileList* fileListFindByName(char* name, FileList *fl)
 {
-	if (strcmp(name, getFileName(fl->file)) == 0)
-		return fl;
+	if (!fl)
+		return NULL;
 
-	if (fl->next)
-		return findFileList(name, fl->next);
+	while (strcmp(name, fileGetName(fl->file)) != 0)
+	{
 
-	return NULL;
+		if (!fl->next)
+			return NULL;
+		
+		fl = fl->next;
+	}
+	return fl;
+}
+
+//retuns the FileList pointing to the same file, NULL it it's not found in the list
+FileList* fileListFind(File* f, FileList* fl)
+{
+	if (!fl)
+		return NULL;
+
+	while (fl->file != f)
+	{
+		if (!fl->next)
+			return NULL;
+
+		fl = fl->next;
+	}
+
+	return fl;
 }
 
 //delete all the elements from this element to the end of the list
-void recursiveDeleteFileList(FileList* file)
+void fileListRecursiveDelete(FileList* file)
 {
 	if (file)
 	{
 		if (file->next)
-			recursiveDeleteFileList(file->next);
-		deleteFileList(file);
+			fileListRecursiveDelete(file->next);
+		fileListDestroy(file);
 	}	
 }
 
+//returns the next element of the list, returns NULL if it's the last element
+FileList* fileListGetNext(FileList* file)
+{
+	if (!file)
+		return NULL;
+
+	return file->next;
+}
+
+//returns the file this list member is pointing at
+File* fileListGetFile(FileList* file)
+{
+	if (!file)
+		return NULL;
+
+	return file->file;
+}
+
 //creats a list element pointing to the node
-NodeList* createNodeList(Node* node)
+NodeList* nodeListCreate(Node* node)
 {
 	NodeList* n = (NodeList*)malloc(sizeof(NodeList));
 	n->next = NULL;
@@ -94,7 +134,7 @@ NodeList* createNodeList(Node* node)
 }
 
 //deallocate the list element, but not the underlying node
-int deleteNodeList(NodeList* node)
+int nodeListDestroy(NodeList* node)
 {
 	if (!node)
 		return 0;
@@ -108,9 +148,9 @@ int deleteNodeList(NodeList* node)
 }
 
 //insert a new list element in front of the provided one
-void insertInNodeList(Node* node, NodeList *ls)
+void nodeListInsert(Node* node, NodeList *ls)
 {
-	NodeList* n = createNodeList(node);
+	NodeList* n = nodeListCreate(node);
 	if (ls->prev)
 	{
 		ls->prev->next = n;
@@ -125,34 +165,50 @@ void insertInNodeList(Node* node, NodeList *ls)
 }
 
 //search for a node with the provided name in the list and returns it, NULL otherwhise
-NodeList* findNodeList(char* name, NodeList* ls)
+NodeList* nodeListFindByName(char* name, NodeList* ls)
 {
 	if (!ls)
 		return NULL;
 
-	if (strcmp(name, getNodeName(ls->node)) == 0)
-		return ls;
-
-	if (ls->next)
+	while (strcmp(name, nodeGetName(ls->node)) != 0)
 	{
-		return findNodeList(name, ls->next);
-	}
+		if (!ls->next)
+			return NULL;
 
-	return NULL;
+		ls = ls->next;
+	}
+	return ls;
+}
+
+//search for a node in the list and returns it, NULL otherwhise
+NodeList* nodeListFind(Node* n, NodeList* ls)
+{
+	if (!ls)
+		return NULL;
+
+	while (n != ls->node)
+	{
+		if (!ls->next)
+			return NULL;
+
+		ls = ls->next;
+	}
+	return ls;
 }
 
 //deletes all the elements from this to the end of the list
-void recursiveDeleteNodeList(NodeList* file)
+void nodeListRecursiveDelete(NodeList* file)
 {
 	if (file)
 	{
 		if (file->next)
-			recursiveDeleteNodeList(file->next);
-		deleteNodeList(file);
+			nodeListRecursiveDelete(file->next);
+		nodeListDestroy(file);
 	}	
 }
 
-Node* getNodeFromList(NodeList* file)
+//retuns the node inside a list element
+Node* nodeListGetNode(NodeList* file)
 {
 	if (!file)
 		return NULL;
@@ -160,24 +216,11 @@ Node* getNodeFromList(NodeList* file)
 	return file->node;
 }
 
-File* getFileFromList(FileList* file)
-{
-	if (!file)
-		return NULL;
-
-	return file->file;
-}
-
-NodeList* getNextNodeList(NodeList* file)
+//returns the next element of the list
+NodeList* nodeListGetNext(NodeList* file)
 {
 	if (!file)
 		return NULL;
 	return file->next;
 }
 
-FileList* getNextFileList(FileList* file)
-{
-	if (!file)
-		return NULL;
-	return file->next;
-}

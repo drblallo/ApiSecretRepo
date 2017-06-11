@@ -72,10 +72,10 @@ void mainLoop(FILE* f, Node* root)
 
 int main(int argc, char **argv)
 {
-
+	endLineReached = 0;
 	WRITE("STARTING");
 	FILE* f = fopen(argv[1], "r");
-	Node* root = createNode((char*)"/");
+	Node* root = nodeCreate((char*)"/");
 
 	mainLoop(f, root);
 	

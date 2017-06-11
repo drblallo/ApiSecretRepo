@@ -4,16 +4,9 @@
 #include "file.h"
 #include "node.h"
 
-int endLineReached = 0;
-
-
 //returns the next word in the buffer,
 //a word is delimitated by \n, \0, /, and spaces
 //if it ends with a /, the slash is carried over in to the word
-//return is equal to zero if the string point to a dir
-//1 if it's a file
-//-1 if something went wrong
-//2 if word has lenght 0
 nextStringResult getNextString(char* buffer, FILE* f)
 {
 	int index = 0;
@@ -94,7 +87,7 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 
 		if (result == FINAL_DIR_NAME)
 		{
-			supp = getNodeChildren(buffer, m);
+			supp = nodeGetNodeChildren(buffer, m);
 			if (supp)
 			{
 				WRITE_L("LOCATE: found dir all the way down: ");
@@ -113,7 +106,7 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 
 		if (result == FILE_NAME)
 		{
-			if (getFileChildren(buffer, m))
+			if (nodeGetFileChildren(buffer, m))
 			{
 				WRITE_L("LOCATE: found parent dir of existing file: ");
 				WRITE_S(getNodeName(m));
@@ -128,7 +121,7 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 			return m;
 		}
 
-		m = getNodeChildren(buffer, m);
+		m = nodeGetNodeChildren(buffer, m);
 
 	}while (m && !endLineReached);
 
@@ -163,8 +156,8 @@ int FSCreateFile(FILE* f, Node *root, char* buffer)
 		return 0;
 	}
 
-	file = createFile(buffer);
-	addNodeFileChild(n, file);
+	file = fileCreate(buffer);
+	nodeAddFileChild(n, file);
 
 	WRITE("->CREATE: done");
 	return 1;
@@ -181,7 +174,6 @@ int FSCreateDir(FILE* f, Node* root, char* buffer)
 		if (DIR_EXIST)
 		{
 			WRITE("->CREATE_DIR: dir already exist");
-
 		}
 		else
 		{
@@ -189,12 +181,14 @@ int FSCreateDir(FILE* f, Node* root, char* buffer)
 		}
 		return 0;
 	}
+
 	if (strlen(buffer) == 0)
 	{
 		WRITE("->CREATE_DIR: trying to create a 0 lenght file name, aborting");
 		return 0;
 	}
-	addNodeNodeChild(n, createNode(buffer));
+
+	nodeAddNodeChild(n, nodeCreate(buffer));
 	WRITE("->CREATE_DIR: done");
 	return 1;
 }
@@ -202,7 +196,7 @@ int FSCreateDir(FILE* f, Node* root, char* buffer)
 //prints the structure of the tree
 void FSPrintTree(Node* root)
 {
-	printTree(root);	
+	nodePrintTree(root);	
 }
 
 
@@ -218,9 +212,9 @@ void FSRead(FILE* f, Node *root, char* buffer)
 		return;
 	}
 
-	file = getFileChildren(buffer, n);
+	file = nodeGetFileChildren(buffer, n);
 	WRITE("->READ: done");
-	printeFile(file);
+	filePrint(file);
 	putchar('\n');
 }
 
@@ -237,13 +231,13 @@ void FSWrite(FILE* f, Node *root, char* buffer)
 		return;
 	}
 
-	file = getFileChildren(buffer, n);
+	file = nodeGetFileChildren(buffer, n);
 
 	while ((c = fgetc(f)) != '\"')
 		;
 
 	while ((c = fgetc(f)) != '\"' && c != '\n')
-		writeFileChar(file, c);	
+		fileWriteChar(file, c);	
 
 	if (c == '\n')
 		endLineReached = 1;
@@ -267,7 +261,7 @@ void FSDelete(FILE* f, Node *root, char* buffer)
 	{
 		if (n != root)
 		{
-			removeNodeNodeChild(n);
+			nodeRemoveNodeChild(n);
 			WRITE("->DELETE: done");
 		}
 		else
@@ -277,8 +271,8 @@ void FSDelete(FILE* f, Node *root, char* buffer)
 	}
 	else
 	{
-		file = getFileChildren(buffer, n);
-		removeNodeFileChild(n, file);	
+		file = nodeGetFileChildren(buffer, n);
+		nodeRemoveFileChild(n, file);	
 		WRITE("->DELETE: done");
 	}
 }
@@ -292,8 +286,8 @@ void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
 
 	if (out == FILE_EXIST)
 	{
-		file = getFileChildren(buffer, n);
-		removeNodeFileChild(n, file);	
+		file = nodeGetFileChildren(buffer, n);
+		nodeRemoveFileChild(n, file);	
 		WRITE("->DELETE_R: done");
 		return;
 	}
@@ -309,7 +303,7 @@ void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
 		WRITE("->DELETE_R: trying to delete root, aborting");
 		return;
 	}
-	recursiveRemoveNode(n, getNodeParent(n));
+	nodeRecursiveRemove(n, nodeGetParent(n));
 	WRITE("->DELETE_R: done");
 }
 
@@ -318,11 +312,11 @@ void FSDeleteRoot(Node *root)
 	if (!root)
 		return;	
 
-	if (getNodeParent(root))
+	if (nodeGetParent(root))
 		return;
 
-	recursiveRemoveNode(root, NULL);	
-	deleteNode(root);
+	nodeRecursiveRemove(root, NULL);	
+	nodeDestroy(root);
 	WRITE("->DELETE_ROOT: done");
 }
 
@@ -340,7 +334,7 @@ void FSFind(FILE* f, Node *root, char* buffer)
 		endLineReached = 1;
 	buffer[a] = '\0';
 
-	findInNodeAndPrint(root, buffer);
+	nodeFindAndPrint(root, buffer);
 }
 
 

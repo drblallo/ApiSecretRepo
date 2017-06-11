@@ -3,7 +3,7 @@
 #define MAX_COMMAND_SIZE 15
 #include <stdio.h> 
 
-//#define QUIET
+#define QUIET
 
 #ifndef QUIET 
 #define WRITE(text) printf(text); putchar('\n')
@@ -45,15 +45,12 @@ typedef struct nd Node;
 
 int endLineReached;
 
-nextStringResult getNextString(char* buffer, FILE* f); //DONE
-Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out); //DONE
-
-int FSCreateFile(FILE* f, Node *root, char* buffer); //DONE
-int FSCreateDir(FILE* f, Node *root, char* buffer); //DONE
-void FSPrintTree(Node* root); //DONE
-void FSRead(FILE* f, Node *root, char* buffer); //DONE
-void FSWrite(FILE* f, Node *root, char* buffer); //DONE
-void FSDelete(FILE* f, Node *root, char* buffer); //DONE
-void FSDeleteRecursive(FILE* f, Node *root, char* buffer); //DONE
-void FSDeleteRoot(Node *root); //DONE
-void FSFind(FILE* f, Node *root, char* buffer); //DONE
+int FSCreateFile(FILE* f, Node *root, char* buffer); 
+int FSCreateDir(FILE* f, Node *root, char* buffer); 
+void FSPrintTree(Node* root); 
+void FSRead(FILE* f, Node *root, char* buffer); 
+void FSWrite(FILE* f, Node *root, char* buffer); 
+void FSDelete(FILE* f, Node *root, char* buffer); 
+void FSDeleteRecursive(FILE* f, Node *root, char* buffer);
+void FSDeleteRoot(Node *root); 
+void FSFind(FILE* f, Node *root, char* buffer); 
