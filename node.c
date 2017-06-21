@@ -87,23 +87,27 @@ int nodeAddFileChild(Node* node, File* child)
 
 //delete a node from the tree, the node must be empty and it must have a parent
 //else it does nothing
-void nodeRemoveNodeChild(Node* child)
+int nodeRemoveNodeChild(Node* child)
 {
 	Node *node = child->parent;
 	if (!node || !child || child->childCount != 0)
-		return;
+		return 0;
 
 	if (nodeHMapRemove(child, node->nodeChildren))
 	{
 		node->childCount--;
 		nodeDestroy(child);
+		return 1;
 	}
+	return 0;
 }
 
 //remove a file from a node
 void nodeRemoveFileChild(Node* node, File* child)
 {
 	if (!child)
+		return;
+	if (!node)
 		return;
 
 	if (fileHMapRemove(child, node->fileChildren))
@@ -199,35 +203,42 @@ void nodePrintTree(Node* root)
 	nodeHMapApplyToAllMembers(root->nodeChildren, nodePrintTree);
 }
 
-void nodePrintPath(Node* n)
+void nodePrintPath(Node* n, int last)
 {
 	if (!n)
 		return;
 
 	if (nodeGetParent(n))
-		nodePrintPath(nodeGetParent(n));
+		nodePrintPath(nodeGetParent(n), 0);
 
-	printf("%s", nodeGetName(n));
+	if (last || nodeGetName(n)[0] == '/')
+		printf("%s", nodeGetName(n));
+	else
+		printf("%s/", nodeGetName(n));
 }
 
-void nodeFindAndPrint(Node* n, char* name)
+void nodeFindAndPrint(Node* n, char* name, int* printedOk)
 {
 	if (!n)
 		return;
 	File *file;
 
-	nodeHMapApplyToAllMembersString(n->nodeChildren, nodeFindAndPrint, name);
+	nodeHMapApplyToAllMembersString(n->nodeChildren, nodeFindAndPrint, name, printedOk);
 
 	file = nodeGetFileChildren(name, n);
 	if (strcmp(name, nodeGetName(n)) == 0)
 	{
-		nodePrintPath(n);		
+		*printedOk = 1;
+		printf("ok ");
+		nodePrintPath(n, 1);		
 		printf("\n");
 	}
 
 	if (file)
 	{
-		nodePrintPath(n);
+		*printedOk = 1;
+		printf("ok ");
+		nodePrintPath(n, 0);
 		printf("%s", fileGetName(file));
 		printf("\n");
 	}

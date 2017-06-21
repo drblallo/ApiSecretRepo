@@ -7,3 +7,4 @@ void fileDataWrite(FileData *data, char* dataToWrite);
 void fileDataWriteChar(FileData *data, char dataToWrite); 
 void fileDataPrint(FileData *data); 
 void fileDataDestroy(FileData *data); 
+void fileDataClear(FileData* data);

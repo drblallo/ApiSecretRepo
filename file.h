@@ -11,3 +11,4 @@ char* fileGetName(File* file);
 void fileClearData(File* file);
 void fileSetDeapth(File* f, int deapth);
 int fileGetDepth(File* f);
+void fileClear(File* f);

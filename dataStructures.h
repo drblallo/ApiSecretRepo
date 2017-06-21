@@ -25,9 +25,10 @@
 
 typedef enum 
 {
-	DIR_EXIST, 
+	//DIR_EXIST, 
 	FILE_EXIST, 
-	DIR_PARENT_EXIST, 
+	DIR_EXIST, 
+	//DIR_PARENT_EXIST, 
 	FILE_PARENT_EXIST, 
 	BROKEN_PATH
 } locateResult;
@@ -35,8 +36,7 @@ typedef enum
 typedef enum 
 {
 	DIR_NAME, 
-	FILE_NAME, 
-	FINAL_DIR_NAME, 
+	FILE_OR_DIR_NAME, 
 	ZERO_LENGHT_NAME, 
 	BROKEN_NAME
 } nextStringResult;

@@ -86,3 +86,15 @@ void fileDataPrint(FileData *data)
 		fileDataPrint(data->next);
 }
 
+
+void fileDataClear(FileData* data)
+{
+	if (!data)
+		return;
+
+	if (data->next)
+		fileDataDestroy(data->next);
+	data->count = 0;
+	data->data[0] = '\0';
+	data->next = NULL;
+}

@@ -62,6 +62,9 @@ void mainLoop(FILE* f, Node* root)
 
 			if (strcmp(commandBuffer, (char*)"find") == 0)
 				FSFind(f, root, buffer);
+
+			if (strcmp(commandBuffer, (char*)"exit") == 0)
+				return;
 		}
 		if (!endLineReached)
 			while (fgetc(f) != '\n')

@@ -24,4 +24,4 @@ int nodeHMapRemove(Node *node, NodeHMap *map);
 void nodeHMapDestroy(NodeHMap* map);
 NodeList* nodeHMapGetFront(NodeHMap* map); 
 void nodeHMapApplyToAllMembers(NodeHMap* map, void (*f) (Node*));
-void nodeHMapApplyToAllMembersString(NodeHMap* map, void (*f) (Node*, char*), char* s);
+void nodeHMapApplyToAllMembersString(NodeHMap* map, void (*f) (Node*, char*, int*), char* s, int* t);

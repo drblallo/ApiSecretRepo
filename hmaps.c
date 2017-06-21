@@ -69,12 +69,12 @@ void nodeHMapDestroy(NodeHMap* map)
 short hash(char* name)
 {
 	int a = 0;
-	short hash = 0;
-	while (name[a] != '\0')
+	short hash = name[a];
+/*	while (name[a] != '\0')
 	{
 		hash += name[a];
 		a++;
-	}
+	}*/
 	return hash % HMAP_SIZE;
 }
 
@@ -242,7 +242,7 @@ void nodeHMapApplyToAllMembers(NodeHMap* map, void (*f) (Node*))
 	}
 }
 
-void nodeHMapApplyToAllMembersString(NodeHMap* map, void (*f) (Node*, char*), char* s)
+void nodeHMapApplyToAllMembersString(NodeHMap* map, void (*f) (Node*, char*, int*), char* s, int* t)
 {
 	int a;
 	NodeList *ls;
@@ -251,7 +251,7 @@ void nodeHMapApplyToAllMembersString(NodeHMap* map, void (*f) (Node*, char*), ch
 		ls = map->list[a];
 		while (ls)
 		{
-			f(nodeListGetNode(ls), s);
+			f(nodeListGetNode(ls), s, t);
 			ls = nodeListGetNext(ls);
 		}
 	}

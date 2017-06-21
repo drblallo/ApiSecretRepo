@@ -45,19 +45,39 @@ int fileListDestroy(FileList* fl)
 	return 0;
 }
 
-//insert a new element in front of the provided one
+//insert a new element in lexografical order
 void fileListInsert(File *file, FileList* ls)
 {
 	if (!ls)
 		return;
-	FileList* f = fileListCreate(file);
-	if (ls->prev)
+
+	int s = strcmp(fileGetName(file), fileGetName(fileListGetFile(ls)));
+
+	if (s == 0)
+		return;
+
+	if (s < 0)
 	{
-		ls->prev->next = f;
-		f->prev = ls->prev;
+		FileList* f = fileListCreate(file);
+		if (ls->prev)
+		{
+			ls->prev->next = f;
+			f->prev = ls->prev;
+		}
+		ls->prev = f;
+		f->next = ls;
+	}	
+	else
+	{
+		if (ls->next)
+			fileListInsert(file, ls->next);
+		else
+		{
+			FileList* f = fileListCreate(file);
+			f->prev = ls;
+			ls->next = f;	
+		}
 	}
-	ls->prev = f;
-	f->next = ls;
 }
 
 //returns the FileList pointing to a file with the same name, NULL if it's not found in the list
@@ -147,20 +167,42 @@ int nodeListDestroy(NodeList* node)
 	return 1;
 }
 
-//insert a new list element in front of the provided one
+//insert a new list element in lexografical order
 void nodeListInsert(Node* node, NodeList *ls)
 {
-	NodeList* n = nodeListCreate(node);
-	if (ls->prev)
-	{
-		ls->prev->next = n;
-		n->prev = ls->prev;
-	}
+	if (!ls || !node)
+		return;
+	
+	int t = strcmp(nodeGetName(node), nodeGetName(ls->node));
+	if (t == 0)
+		return;
 
-	if (ls->next)
+	if (t < 0)
 	{
-		n->next = ls;
-		ls->prev = n;
+		NodeList* n = nodeListCreate(node);
+		if (ls->prev)
+		{
+			ls->prev->next = n;
+			n->prev = ls->prev;
+		}
+
+		if (ls->next)
+		{
+			n->next = ls;
+			ls->prev = n;
+		}
+	}
+	else
+	{
+		if (ls->next)
+			nodeListInsert(node, ls->next);
+		else
+		{
+			NodeList* n = nodeListCreate(node);
+			n->prev = ls;
+			ls->next = n;
+		}
+
 	}
 }
 

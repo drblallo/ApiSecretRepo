@@ -93,3 +93,11 @@ int fileGetDepth(File* f)
 
 	return f->depth;
 }
+
+void fileClear(File* f)
+{
+	if (!f)
+		return;
+
+	fileDataClear(f->data);
+}

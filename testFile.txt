@@ -1,17 +1,21 @@
-create /testFile 
-create /testFile 
-create_dir /dir/
-create_dir /dir/
-create_dir /dir/dira/
-create /dir/dira/filead
-create /asd/t
-create_dir /asd/asd/
-create_dir /asd/
-write /testFile "adsdadsadsadsadsaddsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-write /testFile "adsdadsadsadsadsadds"
-read /testFile
-find testFile
-delete /asd/
-delete_r /dir/
-delete /dir/dira/filead
-delete /dir/dira/
+create_dir  /foo
+create /foo/bar
+create_dir /foo/baz
+create /foo/baz/qux
+write  /foo/bar "test"
+read   /foo/bar
+read   /foo/baz/qux
+read   /foo/baz/quux
+create /foo/bar
+create_dir /dir
+create_dir /bar
+create /dir/bar
+find bar
+delete /foo/bar
+find wat
+find foo
+read   /foo/bar
+create /foo/bar
+read   /foo/bar
+delete_r /foo
+exit
