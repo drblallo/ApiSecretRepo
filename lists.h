@@ -7,7 +7,7 @@ typedef struct fl File;
 typedef struct nd Node;
 
 FileList* fileListCreate(File *file); 
-void fileListInsert(File *file, FileList *ls); 
+FileList* fileListInsert(File *file, FileList *ls); 
 FileList* fileListFindByName(char* name, FileList *fl); 
 FileList* fileListFind(File* file, FileList* fl);
 int fileListDestroy(FileList* fl); 
@@ -16,7 +16,7 @@ File* fileListGetFile(FileList* file);
 FileList* fileListGetNext(FileList* file); 
 
 NodeList* nodeListCreate(Node *node); 
-void nodeListInsert(Node *node, NodeList *ls);
+NodeList* nodeListInsert(Node *node, NodeList *ls);
 NodeList* nodeListFindByName(char* name, NodeList* ls); 
 NodeList* nodeListFind(Node* n, NodeList* ls);
 int nodeListDestroy(NodeList* node); 

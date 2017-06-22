@@ -1,7 +1,7 @@
 #pragma once
 #define MAX_BUFFER_SIZE 257
 #define MAX_COMMAND_SIZE 15
-#include <stdio.h> 
+#include <stdio.h>
 
 #define QUIET
 
@@ -23,6 +23,12 @@
 #define WRITE_S(text) do {} while(0)
 #endif
 
+#ifndef QUIET 
+#define WRITE_I(text) printf("%i", text) 
+#else
+#define WRITE_I(text) do {} while(0)
+#endif
+
 typedef enum 
 {
 	//DIR_EXIST, 
@@ -41,16 +47,17 @@ typedef enum
 	BROKEN_NAME
 } nextStringResult;
 
+typedef struct flr FileReader;
 typedef struct nd Node;
 
 int endLineReached;
 
-int FSCreateFile(FILE* f, Node *root, char* buffer); 
-int FSCreateDir(FILE* f, Node *root, char* buffer); 
+int FSCreateFile(FileReader* f, Node *root, char* buffer); 
+int FSCreateDir(FileReader* f, Node *root, char* buffer); 
 void FSPrintTree(Node* root); 
-void FSRead(FILE* f, Node *root, char* buffer); 
-void FSWrite(FILE* f, Node *root, char* buffer); 
-void FSDelete(FILE* f, Node *root, char* buffer); 
-void FSDeleteRecursive(FILE* f, Node *root, char* buffer);
+void FSRead(FileReader* f, Node *root, char* buffer); 
+void FSWrite(FileReader* f, Node *root, char* buffer); 
+void FSDelete(FileReader* f, Node *root, char* buffer); 
+void FSDeleteRecursive(FileReader* f, Node *root, char* buffer);
 void FSDeleteRoot(Node *root); 
-void FSFind(FILE* f, Node *root, char* buffer); 
+void FSFind(FileReader* f, Node *root, char* buffer); 

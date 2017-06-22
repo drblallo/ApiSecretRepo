@@ -1,10 +1,10 @@
 #include "node.h"
 #include <stdlib.h>
-#include <stdio.h>
 #include "file.h"
 #include <string.h>
 #include "lists.h"
 #include "hmaps.h"
+#include <stdio.h>
 
 struct nd
 {
@@ -233,7 +233,6 @@ void nodeFindAndPrint(Node* n, char* name, int* printedOk)
 		nodePrintPath(n, 1);		
 		printf("\n");
 	}
-
 	if (file)
 	{
 		*printedOk = 1;

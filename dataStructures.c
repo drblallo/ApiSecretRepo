@@ -3,18 +3,18 @@
 #include <string.h>
 #include "file.h"
 #include "node.h"
-#include <stdio.h>
+#include "fileReader.h"
 
 //returns the next word in the buffer,
 //a word is delimitated by \n, \0, /, and spaces
 //if it ends with a /, the slash is carried over in to the word
-nextStringResult getNextString(char* buffer, FILE* f)
+nextStringResult getNextString(char* buffer, FileReader* f)
 {
 	int index = 0;
 	char c = '0';
 	nextStringResult toReturn = FILE_OR_DIR_NAME;
 
-	while ((c = fgetc(f)) != '\n' && c != '/' && c != '\0' && c != ' ')
+	while ((c = fileReaderGetChar(f)) != '\n' && c != '/' && c != '\0' && c != ' ')
 	{
 		buffer[index] = c;
 		index++;
@@ -62,7 +62,7 @@ nextStringResult getNextString(char* buffer, FILE* f)
 //whose name is left in the buffer 
 //out is equal to -1 if the path was broken
 //out is equal to 3 if the file is not inside the node
-Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
+Node* locateRecursive(Node* source, FileReader* f, char* buffer, locateResult* out)
 {
 	Node *m = source;
 	nextStringResult result = BROKEN_NAME;
@@ -127,7 +127,7 @@ Node* locateRecursive(Node* source, FILE* f, char* buffer, locateResult* out)
 	return NULL;
 }
 
-int FSCreateFile(FILE* f, Node *root, char* buffer)
+int FSCreateFile(FileReader* f, Node *root, char* buffer)
 {
 
 	locateResult out;
@@ -162,7 +162,7 @@ int FSCreateFile(FILE* f, Node *root, char* buffer)
 	return 1;
 }
 
-int FSCreateDir(FILE* f, Node* root, char* buffer)
+int FSCreateDir(FileReader* f, Node* root, char* buffer)
 {
 
 	locateResult out;
@@ -202,7 +202,7 @@ void FSPrintTree(Node* root)
 }
 
 
-void FSRead(FILE* f, Node *root, char* buffer)
+void FSRead(FileReader* f, Node *root, char* buffer)
 {
 	locateResult out;
 	Node* n = locateRecursive(root, f, buffer, &out);
@@ -222,7 +222,7 @@ void FSRead(FILE* f, Node *root, char* buffer)
 	putchar('\n');
 }
 
-void FSWrite(FILE* f, Node *root, char* buffer)
+void FSWrite(FileReader* f, Node *root, char* buffer)
 {
 	locateResult out;
 	Node* n = locateRecursive(root, f, buffer, &out);
@@ -239,11 +239,11 @@ void FSWrite(FILE* f, Node *root, char* buffer)
 	file = nodeGetFileChildren(buffer, n);
 	fileClear(file);
 
-	while ((c = fgetc(f)) != '\"')
+	while ((c = fileReaderGetChar(f)) != '\"')
 		;
 
 	int a = 0;
-	while ((c = fgetc(f)) != '\"' && c != '\n')
+	while ((c = fileReaderGetChar(f)) != '\"' && c != '\n')
 	{
 		fileWriteChar(file, c);	
 		a++;
@@ -257,7 +257,7 @@ void FSWrite(FILE* f, Node *root, char* buffer)
 }
 
 
-void FSDelete(FILE* f, Node *root, char* buffer)
+void FSDelete(FileReader* f, Node *root, char* buffer)
 {
 	locateResult out;
 	Node* n = locateRecursive(root, f, buffer, &out);
@@ -274,33 +274,33 @@ void FSDelete(FILE* f, Node *root, char* buffer)
 		if (n != root)
 		{
 			if (nodeRemoveNodeChild(n))
-			{
-				WRITE("->DELETE: done");
-				printf("ok\n");
-			}
-			else
-			{
-				printf("no\n");
-			}
+		{
+			WRITE("->DELETE: done");
+			printf("ok\n");
 		}
 		else
 		{
-			WRITE("->DELETE: trying to delete root, aborting");
 			printf("no\n");
 		}
 	}
-	if (out == FILE_EXIST)
+	else
 	{
-		WRITE("->DELETE: Trying to delete a file");
-		file = nodeGetFileChildren(buffer, n);
-		nodeRemoveFileChild(n, file);	
-		WRITE("->DELETE: done");
-		printf("ok\n");
+		WRITE("->DELETE: trying to delete root, aborting");
+		printf("no\n");
 	}
+}
+if (out == FILE_EXIST)
+{
+	WRITE("->DELETE: Trying to delete a file");
+	file = nodeGetFileChildren(buffer, n);
+	nodeRemoveFileChild(n, file);	
+	WRITE("->DELETE: done");
+	printf("ok\n");
+}
 }
 
 
-void FSDeleteRecursive(FILE* f, Node *root, char* buffer)
+void FSDeleteRecursive(FileReader* f, Node *root, char* buffer)
 {
 	locateResult out;
 	Node* n = locateRecursive(root, f, buffer, &out);
@@ -346,12 +346,12 @@ void FSDeleteRoot(Node *root)
 	WRITE("->DELETE_ROOT: done");
 }
 
-void FSFind(FILE* f, Node *root, char* buffer)
+void FSFind(FileReader* f, Node *root, char* buffer)
 {
 	char c;
-	int a = 0;
-	fseek(f, -1, SEEK_CUR);
-	while ((c = fgetc(f)) != '\n' && c != ' ')
+	int a = 1;
+	buffer[0] = fileReaderGetPrev(f);
+	while ((c = fileReaderGetChar(f)) != '\n' && c != ' ')
 	{
 		buffer[a] = c;	
 		a++;
@@ -359,7 +359,8 @@ void FSFind(FILE* f, Node *root, char* buffer)
 	if (c == '\n')
 		endLineReached = 1;
 	buffer[a] = '\0';
-
+	WRITE("Searching for:");
+	WRITE_S(buffer);
 	int printedOk = 0;
 	nodeFindAndPrint(root, buffer, &printedOk);
 	if (!printedOk)

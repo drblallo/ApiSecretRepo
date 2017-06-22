@@ -1,20 +1,29 @@
 #include "dataStructures.h"
 #include "string.h"
 #include "node.h"
+#include "fileReader.h"
 
-int getCommand(char* buffer, FILE* f)
+int commandCount = 0;
+int getCommand(char* buffer, FileReader* f)
 {
 	int a = 0;
 	char c = '0';
-
-	while ((c = fgetc(f)) != ' ' && c != '\n')
+	WRITE("reading command");
+	while ((c = fileReaderGetChar(f)) != ' ' && c != '\n' && c != '|')
 	{	
 		buffer[a] = c;
 		a++;
 		if (a >= MAX_COMMAND_SIZE - 2)
+		{
+			WRITE("A command was too long, aborted");
 			return 0;
+		}
 	}
 	buffer[a] = '\0';
+	WRITE_S(buffer);
+	WRITE_I(commandCount);
+	WRITE(" COMMAND");
+	commandCount++;
 
 	if (c == '\n')
 	{
@@ -22,25 +31,23 @@ int getCommand(char* buffer, FILE* f)
 		return 0;
 	}
 	
-	while (fgetc(f) == ' ')
+	while (fileReaderGetChar(f) == ' ')
 		;
 
 	return 1;
 		
 }
 
-void mainLoop(FILE* f, Node* root)
+void mainLoop(FileReader* f, Node* root)
 {
 	char buffer[MAX_BUFFER_SIZE];
 	char commandBuffer[MAX_COMMAND_SIZE];
 		
 	buffer[0] = '\0';
-	while (fgetc(f) != -1)
+	while (fileReaderPeek(f) != '|')
 	{
-		fseek(f, -1, SEEK_CUR);
 		if (getCommand(commandBuffer, f))
 		{
-			WRITE_S(commandBuffer);
 
 			if (strcmp(commandBuffer, (char*)"create") == 0)
 				FSCreateFile(f, root, buffer);	
@@ -67,9 +74,10 @@ void mainLoop(FILE* f, Node* root)
 				return;
 		}
 		if (!endLineReached)
-			while (fgetc(f) != '\n')
+			while (fileReaderGetChar(f) != '\n')
 				;
 		endLineReached = 0;
+		
 	}
 }
 
@@ -77,16 +85,16 @@ int main(int argc, char **argv)
 {
 	endLineReached = 0;
 	WRITE("STARTING");
-	FILE* f = fopen(argv[1], "r");
 	Node* root = nodeCreate((char*)"/");
+	FileReader* fr = fileReaderCreate();
 
-	mainLoop(f, root);
+	mainLoop(fr, root);
 	
 #ifndef QUIET
 	FSPrintTree(root);
 #endif
 
+	fileReaderDestroy(fr);
 	FSDeleteRoot(root);
-	fclose(f);
 	return 0;
 }

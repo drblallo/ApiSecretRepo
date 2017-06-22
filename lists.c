@@ -46,15 +46,15 @@ int fileListDestroy(FileList* fl)
 }
 
 //insert a new element in lexografical order
-void fileListInsert(File *file, FileList* ls)
+FileList* fileListInsert(File *file, FileList* ls)
 {
 	if (!ls)
-		return;
+		return ls;
 
 	int s = strcmp(fileGetName(file), fileGetName(fileListGetFile(ls)));
 
 	if (s == 0)
-		return;
+		return ls;
 
 	if (s < 0)
 	{
@@ -66,6 +66,7 @@ void fileListInsert(File *file, FileList* ls)
 		}
 		ls->prev = f;
 		f->next = ls;
+		return f;
 	}	
 	else
 	{
@@ -77,6 +78,7 @@ void fileListInsert(File *file, FileList* ls)
 			f->prev = ls;
 			ls->next = f;	
 		}
+		return ls;
 	}
 }
 
@@ -168,14 +170,14 @@ int nodeListDestroy(NodeList* node)
 }
 
 //insert a new list element in lexografical order
-void nodeListInsert(Node* node, NodeList *ls)
+NodeList* nodeListInsert(Node* node, NodeList *ls)
 {
 	if (!ls || !node)
-		return;
+		return ls;
 	
 	int t = strcmp(nodeGetName(node), nodeGetName(ls->node));
 	if (t == 0)
-		return;
+		return ls;
 
 	if (t < 0)
 	{
@@ -186,11 +188,9 @@ void nodeListInsert(Node* node, NodeList *ls)
 			n->prev = ls->prev;
 		}
 
-		if (ls->next)
-		{
-			n->next = ls;
-			ls->prev = n;
-		}
+		n->next = ls;
+		ls->prev = n;
+		return n;
 	}
 	else
 	{
@@ -202,6 +202,7 @@ void nodeListInsert(Node* node, NodeList *ls)
 			n->prev = ls;
 			ls->next = n;
 		}
+		return ls;
 
 	}
 }
